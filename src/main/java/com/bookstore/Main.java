@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class Main {
     public static void main(String[] args) {
@@ -38,37 +39,41 @@ public class Main {
         User currentUser = null;
         boolean running = true;
 
-        while (running) {
-            view.print("");
-            view.print("=== HE THONG QUAN LY NHA SACH ===");
-            view.print(currentUser == null
-                    ? "Trang thai: chua dang nhap"
-                    : "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")");
-            view.print("1. Dang nhap");
-            view.print("2. Dang ky");
-            view.print("3. Quan ly sach");
-            view.print("4. Quan ly kho hang");
-            view.print("5. Quan ly giam gia");
-            view.print("6. Quan ly gio hang / hoa don");
-            view.print("7. Quan ly thue sach");
-            view.print("8. Thong ke bao cao");
-            view.print("9. Quan ly tai khoan nguoi dung");
-            view.print("0. Thoat");
+        try {
+            while (running) {
+                view.print("");
+                view.print("=== HE THONG QUAN LY NHA SACH ===");
+                view.print(currentUser == null
+                        ? "Trang thai: chua dang nhap"
+                        : "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")");
+                view.print("1. Dang nhap");
+                view.print("2. Dang ky");
+                view.print("3. Quan ly sach");
+                view.print("4. Quan ly kho hang");
+                view.print("5. Quan ly giam gia");
+                view.print("6. Quan ly gio hang / hoa don");
+                view.print("7. Quan ly thue sach");
+                view.print("8. Thong ke bao cao");
+                view.print("9. Quan ly tai khoan nguoi dung");
+                view.print("0. Thoat");
 
-            int choice = view.readInt("Chon chuc nang: ");
-            switch (choice) {
-                case 1 -> currentUser = authController.login();
-                case 2 -> currentUser = authController.register();
-                case 3 -> handleBookMenu(view, bookController);
-                case 4 -> handleInventoryMenu(view, inventoryController);
-                case 5 -> handleDiscountMenu(view, discountService);
-                case 6 -> currentUser = handleCartMenu(view, cartService, currentUser);
-                case 7 -> currentUser = handleRentalMenu(view, rentalService, currentUser);
-                case 8 -> handleReportMenu(view, reportService);
-                case 9 -> handleUserMenu(view, userController);
-                case 0 -> running = false;
-                default -> view.printError("Lua chon khong hop le");
+                int choice = view.readInt("Chon chuc nang: ");
+                switch (choice) {
+                    case 1 -> currentUser = authController.login();
+                    case 2 -> currentUser = authController.register();
+                    case 3 -> handleBookMenu(view, bookController);
+                    case 4 -> handleInventoryMenu(view, inventoryController);
+                    case 5 -> handleDiscountMenu(view, discountService);
+                    case 6 -> currentUser = handleCartMenu(view, cartService, currentUser);
+                    case 7 -> currentUser = handleRentalMenu(view, rentalService, currentUser);
+                    case 8 -> handleReportMenu(view, reportService);
+                    case 9 -> handleUserMenu(view, userController);
+                    case 0 -> running = false;
+                    default -> view.printError("Lua chon khong hop le");
+                }
             }
+        } catch (NoSuchElementException e) {
+            view.printError("Khong con du lieu nhap, dung chuong trinh.");
         }
     }
 
@@ -239,9 +244,16 @@ public class Main {
     private static void createCombo(ConsoleView view, DiscountService discountService) {
         try {
             String name = view.readLine("Ten combo: ");
+            requireText(name, "Ten combo khong duoc de trong");
             double price = view.readDouble("Gia combo: ");
+            if (price < 0) {
+                throw new IllegalArgumentException("Gia combo khong hop le");
+            }
             LocalDate startDate = readDate(view, "Ngay bat dau (yyyy-MM-dd): ");
             LocalDate endDate = readDate(view, "Ngay ket thuc (yyyy-MM-dd): ");
+            if (endDate.isBefore(startDate)) {
+                throw new IllegalArgumentException("Ngay ket thuc phai sau hoac bang ngay bat dau");
+            }
             List<ComboDetail> items = collectComboItems(view);
             Combo combo = discountService.createCombo(name, price, startDate, endDate, items);
             view.print("Tao combo thanh cong, comboId=" + combo.getComboId());
@@ -263,8 +275,12 @@ public class Main {
     private static void createVoucher(ConsoleView view, DiscountService discountService) {
         try {
             String code = view.readLine("Ma voucher: ");
+            requireText(code, "Ma voucher khong duoc de trong");
             double discountValue = view.readDouble("Gia tri giam: ");
             double minOrderAmount = view.readDouble("Don toi thieu: ");
+            if (discountValue <= 0 || minOrderAmount < 0) {
+                throw new IllegalArgumentException("Gia tri voucher khong hop le");
+            }
             LocalDate expiryDate = readDate(view, "Ngay het han (yyyy-MM-dd): ");
             discountService.createVoucher(code, discountValue, minOrderAmount, expiryDate);
             view.print("Tao voucher thanh cong");
@@ -277,9 +293,11 @@ public class Main {
         String fromDate = view.readLine("Tu ngay (yyyy-MM-dd hoac yyyy-MM-dd HH:mm:ss): ");
         String toDate = view.readLine("Den ngay (yyyy-MM-dd hoac yyyy-MM-dd HH:mm:ss): ");
         try {
+            requireText(fromDate, "Tu ngay khong duoc de trong");
+            requireText(toDate, "Den ngay khong duoc de trong");
             double revenue = reportService.revenueBetween(fromDate, toDate);
             view.print(String.format("Doanh thu: %.0f", revenue));
-        } catch (SQLException e) {
+        } catch (IllegalArgumentException | SQLException e) {
             view.printError(e.getMessage());
         }
     }
@@ -287,6 +305,9 @@ public class Main {
     private static void showBestSellers(ConsoleView view, ReportService reportService) {
         int limit = view.readInt("So luong top san pham: ");
         try {
+            if (limit < 1) {
+                throw new IllegalArgumentException("So luong top san pham phai lon hon 0");
+            }
             List<Object[]> items = reportService.bestSellers(limit);
             if (items.isEmpty()) {
                 view.print("Chua co du lieu ban chay");
@@ -303,6 +324,9 @@ public class Main {
     private static void showLowStock(ConsoleView view, ReportService reportService) {
         int threshold = view.readInt("Nguong ton kho toi da: ");
         try {
+            if (threshold < 0) {
+                throw new IllegalArgumentException("Nguong ton kho khong hop le");
+            }
             List<Book> books = reportService.lowStockBooks(threshold);
             if (books.isEmpty()) {
                 view.print("Khong co sach can canh bao ton kho");
@@ -319,8 +343,11 @@ public class Main {
     private static void showChart(ConsoleView view, ReportService reportService) {
         int limit = view.readInt("So luong top san pham de ve bieu do: ");
         try {
+            if (limit < 1) {
+                throw new IllegalArgumentException("So luong top san pham phai lon hon 0");
+            }
             view.print(reportService.bestSellersChart(limit));
-        } catch (SQLException e) {
+        } catch (IllegalArgumentException | SQLException e) {
             view.printError(e.getMessage());
         }
     }
@@ -330,9 +357,12 @@ public class Main {
         String toDate = view.readLine("Den ngay: ");
         String filePath = view.readLine("Duong dan file xuat (vd: revenue.csv): ");
         try {
+            requireText(fromDate, "Tu ngay khong duoc de trong");
+            requireText(toDate, "Den ngay khong duoc de trong");
+            requireText(filePath, "Duong dan file khong duoc de trong");
             reportService.exportRevenueCsv(fromDate, toDate, filePath);
             view.print("Da xuat bao cao ra file: " + filePath);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | SQLException | java.io.IOException e) {
             view.printError(e.getMessage());
         }
     }
@@ -364,6 +394,7 @@ public class Main {
         int orderId = view.readInt("Nhap orderId: ");
         String method = view.readLine("Phuong thuc thanh toan: ");
         try {
+            requireText(method, "Phuong thuc thanh toan khong duoc de trong");
             cartService.confirmPayment(orderId, method);
             view.print("Da xac nhan thanh toan cho don " + orderId);
         } catch (SQLException | IllegalArgumentException e) {
@@ -374,6 +405,9 @@ public class Main {
     private static void cancelOrder(ConsoleView view, CartService cartService) {
         int orderId = view.readInt("Nhap orderId can huy: ");
         try {
+            if (orderId < 1) {
+                throw new IllegalArgumentException("OrderId khong hop le");
+            }
             double refund = cartService.cancelOrder(orderId);
             view.print(String.format("Da huy don %d, so tien hoan: %.0f", orderId, refund));
         } catch (SQLException | IllegalArgumentException e) {
@@ -384,6 +418,7 @@ public class Main {
     private static void searchOrders(ConsoleView view, CartService cartService) {
         String criteria = view.readLine("Tu khoa tim kiem hoa don: ");
         try {
+            requireText(criteria, "Tu khoa tim kiem khong duoc de trong");
             List<Order> orders = cartService.searchOrders(criteria);
             if (orders.isEmpty()) {
                 view.print("Khong tim thay hoa don");
@@ -395,7 +430,7 @@ public class Main {
                         + ", trang thai=" + order.getStatus()
                         + ", voucher=" + order.getVoucherCode());
             }
-        } catch (SQLException e) {
+        } catch (SQLException | IllegalArgumentException e) {
             view.printError(e.getMessage());
         }
     }
@@ -408,6 +443,9 @@ public class Main {
         int bookId = view.readInt("Nhap bookId: ");
         int days = view.readInt("So ngay thue: ");
         try {
+            if (bookId < 1) {
+                throw new IllegalArgumentException("BookId khong hop le");
+            }
             Rental rental = rentalService.rentBook(currentUser.getUserId(), bookId, days);
             view.print("Thue sach thanh cong, rentalId=" + rental.getRentalId());
         } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
@@ -419,6 +457,9 @@ public class Main {
     private static void returnBook(ConsoleView view, RentalService rentalService) {
         int rentalId = view.readInt("Nhap rentalId: ");
         try {
+            if (rentalId < 1) {
+                throw new IllegalArgumentException("RentalId khong hop le");
+            }
             double lateFee = rentalService.returnBook(rentalId);
             view.print(String.format("Tra sach thanh cong. Phi tre han: %.0f", lateFee));
         } catch (IllegalArgumentException | SQLException e) {
@@ -429,6 +470,7 @@ public class Main {
     private static void searchRentals(ConsoleView view, RentalService rentalService) {
         String keyword = view.readLine("Tu khoa tim kiem phieu thue: ");
         try {
+            requireText(keyword, "Tu khoa tim kiem khong duoc de trong");
             List<Rental> rentals = rentalService.search(keyword);
             if (rentals.isEmpty()) {
                 view.print("Khong tim thay phieu thue");
@@ -441,7 +483,7 @@ public class Main {
                         + ", so ngay=" + rental.getDays()
                         + ", trang thai=" + rental.getStatus());
             }
-        } catch (SQLException e) {
+        } catch (SQLException | IllegalArgumentException e) {
             view.printError(e.getMessage());
         }
     }
@@ -496,10 +538,17 @@ public class Main {
         while (true) {
             String input = view.readLine(prompt);
             try {
+                requireText(input, "Ngay khong duoc de trong");
                 return LocalDate.parse(input);
             } catch (DateTimeParseException e) {
                 view.printError("Ngay khong hop le, dung dinh dang yyyy-MM-dd");
             }
+        }
+    }
+
+    private static void requireText(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
         }
     }
 

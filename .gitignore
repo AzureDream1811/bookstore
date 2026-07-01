@@ -26,3 +26,7 @@ replay_pid*
 
 # IDE
 .idea/
+COPILOT.md
+
+# environment variables
+.env
