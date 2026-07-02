@@ -5,6 +5,45 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
+    static {
+        loadEnv();
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+            } catch (ClassNotFoundException ex) {
+                System.err.println("[LOI] Khong tim thay Driver MySQL trong Classpath!");
+            }
+        }
+    }
+
+    private static void loadEnv() {
+        java.io.File file = new java.io.File(".env");
+        if (file.exists()) {
+            try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    line = line.trim();
+                    if (line.isEmpty() || line.startsWith("#")) continue;
+                    int eq = line.indexOf('=');
+                    if (eq > 0) {
+                        String key = line.substring(0, eq).trim();
+                        String value = line.substring(eq + 1).trim();
+                        if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
+                            value = value.substring(1, value.length() - 1);
+                        } else if (value.startsWith("'") && value.endsWith("'") && value.length() >= 2) {
+                            value = value.substring(1, value.length() - 1);
+                        }
+                        System.setProperty(key, value);
+                    }
+                }
+            } catch (java.io.IOException e) {
+                // ignore
+            }
+        }
+    }
+
     private static final String URL = buildUrl();
     private static final String USER = getConfig("MYSQL_USER", "root");
     private static final String PASSWORD = getConfig("MYSQL_PASSWORD", "root");
@@ -25,10 +64,10 @@ public class DBConnection {
 
     private static String getConfig(String key, String fallback) {
         String value = System.getProperty(key);
-        if (value == null || value.isBlank()) {
+        if (value == null) {
             value = System.getenv(key);
         }
-        return (value == null || value.isBlank()) ? fallback : value;
+        return (value == null) ? fallback : value;
     }
 
     public static void main(String[] args) {
