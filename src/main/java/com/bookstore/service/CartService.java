@@ -17,7 +17,6 @@ public class CartService {
     private final BookDAO bookDAO = new BookDAO();
     private final VoucherDAO voucherDAO = new VoucherDAO();
 
-    /** Tao don hang tu gio hang (danh sach OrderDetail chua orderId), tru ton kho, tra ve Order da luu. */
     public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCode) throws SQLException {
         if (cartItems.isEmpty()) throw new IllegalArgumentException("Gio hang trong");
         double total = 0;
@@ -60,7 +59,6 @@ public class CartService {
         }
     }
 
-    /** Kiem tra voucher hop le + dieu kien don toi thieu, tra ve so tien duoc giam. */
     public double applyVoucher(String code, double orderTotal) throws SQLException {
         Voucher voucher = voucherDAO.findByCode(code);
         if (voucher == null || !voucher.isValid()) {
@@ -113,6 +111,16 @@ public class CartService {
 
     public List<Order> listOrdersByUser(int userId) throws SQLException {
         return orderDAO.findByUserId(userId);
+    }
+
+    /** Quan ly hoa don: liet ke toan bo hoa don, moi nhat truoc. */
+    public List<Order> listAllOrders() throws SQLException {
+        return orderDAO.findAll();
+    }
+
+    /** Tra ve thong tin sach de xem truoc (dung khi doi tra san pham). */
+    public Book getBookById(int bookId) throws SQLException {
+        return bookDAO.findById(bookId);
     }
 
     /** Xu ly hoan tien: chi ap dung cho don da PAID, hoan lai ton kho va danh dau REFUNDED. */
