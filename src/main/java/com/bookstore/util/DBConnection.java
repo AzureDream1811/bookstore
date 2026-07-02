@@ -1,10 +1,14 @@
 package com.bookstore.util;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
+    private static final Dotenv dotenv = Dotenv.load();
+
     private static final String URL = buildUrl();
     private static final String USER = getConfig("MYSQL_USER", "root");
     private static final String PASSWORD = getConfig("MYSQL_PASSWORD", "root");
@@ -23,12 +27,9 @@ public class DBConnection {
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     }
 
-    private static String getConfig(String key, String fallback) {
-        String value = System.getProperty(key);
-        if (value == null || value.isBlank()) {
-            value = System.getenv(key);
-        }
-        return (value == null || value.isBlank()) ? fallback : value;
+    private static String getConfig(String key, String defaultValue) {
+        String value = dotenv.get(key);
+        return (value == null || value.isBlank()) ? defaultValue : value;
     }
 
     public static void main(String[] args) {
