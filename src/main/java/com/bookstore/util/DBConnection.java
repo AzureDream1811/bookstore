@@ -44,22 +44,22 @@ public class DBConnection {
         }
     }
 
-    private static final String URL = buildUrl();
-    private static final String USER = getConfig("MYSQL_USER", "root");
-    private static final String PASSWORD = getConfig("MYSQL_PASSWORD", "root");
-
     private DBConnection() {}
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
-    }
-
-    private static String buildUrl() {
+        // 1. Lấy thông tin động mỗi khi gọi hàm để tránh bị dính cache static
         String host = getConfig("MYSQL_HOST", "localhost");
         String port = getConfig("MYSQL_PORT", "3306");
         String database = getConfig("MYSQL_DATABASE", "bookstore");
-        return "jdbc:mysql://" + host + ":" + port + "/" + database
+        
+        String url = "jdbc:mysql://" + host + ":" + port + "/" + database
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+        
+        String user = getConfig("MYSQL_USER", "root");
+        
+        String password = ""; 
+
+        return DriverManager.getConnection(url, user, password);
     }
 
     private static String getConfig(String key, String fallback) {

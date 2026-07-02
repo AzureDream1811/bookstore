@@ -117,6 +117,17 @@ public class OrderDAO {
         return orders;
     }
 
+    public List<Order> findAll() throws SQLException {
+        List<Order> orders = new ArrayList<>();
+        String sql = "SELECT * FROM orders ORDER BY created_date DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) orders.add(mapOrder(rs));
+        }
+        return orders;
+    }
+
     public double sumRevenue(String fromDate, String toDate) throws SQLException {
         String sql = "SELECT COALESCE(SUM(total_amount), 0) AS revenue FROM orders " +
                 "WHERE status = 'PAID' AND created_date BETWEEN ? AND ?";
@@ -196,7 +207,12 @@ public class OrderDAO {
     }
 
     private Order mapOrder(ResultSet rs) throws SQLException {
-        return new Order(rs.getInt("order_id"), rs.getInt("user_id"), rs.getDouble("total_amount"),
+        Order order = new Order(rs.getInt("order_id"), rs.getInt("user_id"), rs.getDouble("total_amount"),
                 rs.getString("status"), rs.getString("voucher_code"));
+        Timestamp createdDate = rs.getTimestamp("created_date");
+        if (createdDate != null) {
+            order.setCreatedDate(createdDate.toLocalDateTime());
+        }
+        return order;
     }
 }
