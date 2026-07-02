@@ -1,31 +1,11 @@
 package com.bookstore;
 
-import com.bookstore.controller.AuthController;
-import com.bookstore.controller.BookController;
-import com.bookstore.controller.InventoryController;
-import com.bookstore.controller.UserController;
-import com.bookstore.model.Book;
-import com.bookstore.model.Combo;
-import com.bookstore.model.ComboDetail;
-import com.bookstore.model.Order;
-import com.bookstore.model.OrderDetail;
-import com.bookstore.model.Rental;
-import com.bookstore.model.User;
-import com.bookstore.service.CartService;
-import com.bookstore.service.DiscountService;
-import com.bookstore.service.ReportService;
-import com.bookstore.service.RentalService;
+import com.bookstore.controller.*;
 import com.bookstore.view.ConsoleView;
-
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 public class Main {
     public static void main(String[] args) {
+        // 1. Khởi tạo View
         ConsoleView view = new ConsoleView();
         AuthController authController = new AuthController(view);
         BookController bookController = new BookController(view);
@@ -635,18 +615,17 @@ public class Main {
         }
     }
 
-    private static void requireText(String value, String message) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(message);
-        }
-    }
 
-    private static String formatCombo(Combo combo) {
-        return "[" + combo.getComboId() + "] " + combo.getName()
-                + " - gia: " + combo.getPrice()
-                + ", tu: " + combo.getStartDate()
-                + ", den: " + combo.getEndDate()
-                + ", trang thai: " + combo.getStatus()
-                + ", active: " + combo.isActive();
+        // 2. Khởi tạo các Controller chức năng
+        AuthController authController = new AuthController(view);
+//        ReportController reportController = new ReportController(view);
+        // (Khởi tạo các Controller khác ở đây...)
+
+
+        // 3. Khởi tạo Controller Tổng
+        AppController app = new AppController(view, authController/*, reportController*/);
+
+        // 4. Bắt đầu chạy chương trình
+        app.start();
     }
 }
