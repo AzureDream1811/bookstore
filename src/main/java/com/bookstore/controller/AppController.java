@@ -6,7 +6,7 @@ import com.bookstore.view.ConsoleView;
 public class AppController {
     private ConsoleView view;
     private AuthController authController;
-    //private ReportController reportController;
+    private ReportController reportController;
 
     // TODO: 1. Khai báo thêm các Controller/Service khác ở đây
     // VD: private BookController bookController;
@@ -16,10 +16,10 @@ public class AppController {
     private User currentUser = null;
 
     // TODO: 2. Nhớ truyền thêm các Controller đó vào constructor này
-    public AppController(ConsoleView view, AuthController authController/*, ReportController reportController*/) {
+    public AppController(ConsoleView view, AuthController authController, ReportController reportController) {
         this.view = view;
         this.authController = authController;
-//        this.reportController = reportController;
+        this.reportController = reportController;
     }
 
     public void start() {
@@ -110,8 +110,8 @@ public class AppController {
         while (!back) {
             int choice = view.showReportMenu();
             switch (choice) {
-//                case 1 -> reportController.handleRevenueReportRequest();
-                // TODO : 7. Bổ sung các báo cáo khác ở đây nếu có
+                case 1 -> reportController.handleRevenueReportRequest();
+                // TODO (Bạn của bạn): 7. Bổ sung các báo cáo khác ở đây nếu có
                 case 0 -> back = true;
                 default -> view.printError("Lựa chọn không hợp lệ");
             }
