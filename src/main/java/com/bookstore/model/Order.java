@@ -1,5 +1,6 @@
 package com.bookstore.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,8 +8,9 @@ public class Order {
     private int orderId;
     private int userId;
     private double totalAmount;
-    private String status; // PENDING, PAID, CANCELLED
+    private String status; // PENDING, PAID, CANCELLED, REFUNDED
     private String voucherCode;
+    private LocalDateTime createdDate;
     private List<OrderDetail> details = new ArrayList<>();
 
     public Order() {}
@@ -31,6 +33,8 @@ public class Order {
     public void setStatus(String status) { this.status = status; }
     public String getVoucherCode() { return voucherCode; }
     public void setVoucherCode(String voucherCode) { this.voucherCode = voucherCode; }
+    public LocalDateTime getCreatedDate() { return createdDate; }
+    public void setCreatedDate(LocalDateTime createdDate) { this.createdDate = createdDate; }
     public List<OrderDetail> getDetails() { return details; }
     public void setDetails(List<OrderDetail> details) { this.details = details; }
 }
