@@ -10,11 +10,11 @@ public class Main {
 
         // 2. Khởi tạo các Controller chức năng
         AuthController authController = new AuthController(view);
-        ReportController reportController = new ReportController(view);
+//        ReportController reportController = new ReportController(view);
         // (Khởi tạo các Controller khác ở đây...)
 
         // 3. Khởi tạo Controller Tổng
-        AppController app = new AppController(view, authController, reportController);
+        AppController app = new AppController(view, authController/*, reportController*/);
 
         // 4. Bắt đầu chạy chương trình
         app.start();
