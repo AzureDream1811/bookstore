@@ -55,6 +55,7 @@ public class Main {
                 view.print("7. Quan ly thue sach");
                 view.print("8. Thong ke bao cao");
                 view.print("9. Quan ly tai khoan nguoi dung");
+                view.print("10. Quan ly ban hang");
                 view.print("0. Thoat");
 
                 int choice = view.readInt("Chon chuc nang: ");
@@ -68,6 +69,7 @@ public class Main {
                     case 7 -> currentUser = handleRentalMenu(view, rentalService, currentUser);
                     case 8 -> handleReportMenu(view, reportService);
                     case 9 -> handleUserMenu(view, userController);
+                    case 10 -> currentUser = handleSalesMenu(view, cartService, currentUser);
                     case 0 -> running = false;
                     default -> view.printError("Lua chon khong hop le");
                 }
@@ -179,6 +181,93 @@ public class Main {
                 case 0 -> back = true;
                 default -> view.printError("Lua chon khong hop le");
             }
+        }
+    }
+
+    private static User handleSalesMenu(ConsoleView view, CartService cartService, User currentUser) {
+        boolean back = false;
+        while (!back) {
+            view.print("");
+            view.print("--- QUAN LY BAN HANG ---");
+            view.print("1. Xu ly hoan tien");
+            view.print("2. Doi tra san pham");
+            view.print("3. Quan ly hoa don");
+            view.print("0. Quay lai");
+            switch (view.readInt("Chon chuc nang: ")) {
+                case 1 -> processRefund(view, cartService);
+                case 2 -> exchangeProduct(view, cartService);
+                case 3 -> handleInvoiceMenu(view, cartService);
+                case 0 -> back = true;
+                default -> view.printError("Lua chon khong hop le");
+            }
+        }
+        return currentUser;
+    }
+
+    private static void processRefund(ConsoleView view, CartService cartService) {
+        int orderId = view.readInt("Nhap orderId can hoan tien: ");
+        try {
+            if (orderId < 1) {
+                throw new IllegalArgumentException("OrderId khong hop le");
+            }
+            double refund = cartService.processRefund(orderId);
+            view.print(String.format("Da hoan tien cho don %d, so tien hoan: %.0f", orderId, refund));
+        } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
+            view.printError(e.getMessage());
+        }
+    }
+
+    private static void exchangeProduct(ConsoleView view, CartService cartService) {
+        int orderId = view.readInt("Nhap orderId can doi tra: ");
+        int oldBookId = view.readInt("BookId san pham muon tra: ");
+        int oldQuantity = view.readInt("So luong tra: ");
+        int newBookId = view.readInt("BookId san pham muon doi den: ");
+        int newQuantity = view.readInt("So luong doi den: ");
+        try {
+            double priceDiff = cartService.exchangeProduct(orderId, oldBookId, oldQuantity, newBookId, newQuantity);
+            if (priceDiff > 0) {
+                view.print(String.format("Doi tra thanh cong. Khach can tra them: %.0f", priceDiff));
+            } else if (priceDiff < 0) {
+                view.print(String.format("Doi tra thanh cong. Hoan lai cho khach: %.0f", -priceDiff));
+            } else {
+                view.print("Doi tra thanh cong. Khong phat sinh chenh lech tien.");
+            }
+        } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
+            view.printError(e.getMessage());
+        }
+    }
+
+    private static void handleInvoiceMenu(ConsoleView view, CartService cartService) {
+        boolean back = false;
+        while (!back) {
+            view.print("");
+            view.print("--- QUAN LY HOA DON ---");
+            view.print("1. Tim kiem hoa don");
+            view.print("2. Xem chi tiet hoa don");
+            view.print("0. Quay lai");
+            switch (view.readInt("Chon chuc nang: ")) {
+                case 1 -> searchOrders(view, cartService);
+                case 2 -> viewInvoiceDetail(view, cartService);
+                case 0 -> back = true;
+                default -> view.printError("Lua chon khong hop le");
+            }
+        }
+    }
+
+    private static void viewInvoiceDetail(ConsoleView view, CartService cartService) {
+        int orderId = view.readInt("Nhap orderId: ");
+        try {
+            Order order = cartService.getInvoiceDetail(orderId);
+            view.print("Hoa don #" + order.getOrderId() + " - user=" + order.getUserId()
+                    + ", trang thai=" + order.getStatus()
+                    + ", voucher=" + order.getVoucherCode()
+                    + ", tong tien=" + order.getTotalAmount());
+            for (OrderDetail d : order.getDetails()) {
+                view.print(String.format("  - BookId: %d | SL: %d | Don gia: %.0f | Thanh tien: %.0f",
+                        d.getBookId(), d.getQuantity(), d.getPrice(), d.subTotal()));
+            }
+        } catch (IllegalArgumentException | SQLException e) {
+            view.printError(e.getMessage());
         }
     }
 

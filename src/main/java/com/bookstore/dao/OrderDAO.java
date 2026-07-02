@@ -163,6 +163,38 @@ public class OrderDAO {
         return details;
     }
 
+    public OrderDetail findDetail(Connection conn, int orderId, int bookId) throws SQLException {
+        String sql = "SELECT * FROM order_detail WHERE order_id = ? AND book_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, bookId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                return new OrderDetail(rs.getInt("order_id"), rs.getInt("book_id"),
+                        rs.getInt("quantity"), rs.getDouble("price"));
+            }
+        }
+    }
+
+    public void updateDetailQuantity(Connection conn, int orderId, int bookId, int quantity) throws SQLException {
+        String sql = "UPDATE order_detail SET quantity = ? WHERE order_id = ? AND book_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, orderId);
+            ps.setInt(3, bookId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void deleteDetail(Connection conn, int orderId, int bookId) throws SQLException {
+        String sql = "DELETE FROM order_detail WHERE order_id = ? AND book_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, bookId);
+            ps.executeUpdate();
+        }
+    }
+
     private Order mapOrder(ResultSet rs) throws SQLException {
         return new Order(rs.getInt("order_id"), rs.getInt("user_id"), rs.getDouble("total_amount"),
                 rs.getString("status"), rs.getString("voucher_code"));
