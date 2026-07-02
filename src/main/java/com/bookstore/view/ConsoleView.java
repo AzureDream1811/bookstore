@@ -68,4 +68,121 @@ public class ConsoleView {
     public void displayError(String message) {
         System.out.println("[LỖI] " + message);
     }
+//    public LocalDate readDate(String prompt) {
+//        while (true) {
+//            try {
+//                System.out.print(prompt);
+//                return LocalDate.parse(scanner.nextLine().trim(), formatter);
+//            } catch (java.time.format.DateTimeParseException e) {
+//                printError("Vui lòng nhập đúng định dạng dd/MM/yyyy (VD: 01/10/2025)");
+//            }
+//        }
+//    }
+//    public ReportFilter getRevenueFilterInput() {
+//        System.out.println("=== BỘ LỌC BÁO CÁO DOANH THU ===");
+//        LocalDate fromDate = readDate("Nhập ngày bắt đầu (dd/MM/yyyy): ");
+//        LocalDate toDate = readDate("Nhập ngày kết thúc (dd/MM/yyyy): ");
+//        return new ReportFilter(fromDate, toDate);
+//    }
+//
+//    public void displayRevenueResult(RevenueResult result) {
+//        System.out.println("\n=== KẾT QUẢ BÁO CÁO DOANH THU THUẦN ===");
+//        System.out.println("Tổng tiền sản phẩm : " + result.getTotalProductAmount());
+//        System.out.println("- Giảm giá         : " + result.getTotalDiscount());
+//        System.out.println("+ Phí vận chuyển   : " + result.getTotalShippingFee());
+//        System.out.println("- Hoàn tiền        : " + result.getTotalRefund());
+//        System.out.println("-------------------------------------");
+//        System.out.println("DOANH THU THUẦN    : " + result.getNetRevenue());
+//    }
+
+    public void displayError(String message) {
+        System.out.println("[LỖI] " + message);
+    }
+    public int showMainMenu(String userStatus) {
+        print("");
+        print("=== HE THONG QUAN LY NHA SACH ===");
+        print(userStatus);
+        print("1. Dang nhap");
+        print("2. Dang ky");
+        print("3. Quan ly sach");
+        print("4. Quan ly kho hang");
+        print("5. Quan ly giam gia");
+        print("6. Quan ly gio hang / hoa don");
+        print("7. Quan ly thue sach");
+        print("8. Thong ke bao cao");
+        print("9. Quan ly tai khoan nguoi dung");
+        print("0. Thoat");
+        return readInt("Chon chuc nang: ");
+    }
+
+    public int showBookMenu() {
+        print("");
+        print("--- QUAN LY SACH ---");
+        print("1. Danh sach sach");
+        print("2. Tim kiem va goi y sach");
+        print("3. Them sach");
+        print("4. Sua sach");
+        print("5. An sach");
+        print("6. Danh dau sach loi");
+        print("0. Quay lai");
+        return readInt("Chon chuc nang: ");
+    }
+    public int showInventoryMenu() {
+        print("");
+        print("--- QUAN LY KHO HANG ---");
+        print("1. Lap phieu nhap");
+        print("2. Lap phieu xuat");
+        print("0. Quay lai");
+        return readInt("Chon chuc nang: ");
+    }
+    public int showDiscountMenu() {
+        print("");
+        print("--- QUAN LY GIAM GIA ---");
+        print("1. Danh sach combo");
+        print("2. Tao combo");
+        print("3. Huy combo");
+        print("4. Tao voucher");
+        print("5. Thong bao sale");
+        print("0. Quay lai");
+        return readInt("Chon chuc nang: ");
+    }
+    public int showReportMenu() {
+        print("");
+        print("--- THONG KE BAO CAO ---");
+        print("1. Doanh thu theo khoang ngay");
+        print("2. San pham ban chay");
+        print("3. Bao cao ton kho");
+        print("4. Ve bieu do ban chay");
+        print("5. Xuat file bao cao");
+        print("0. Quay lai");
+        return readInt("Chon chuc nang: ");
+    }
+    public int showUserMenu() {
+        print("");
+        print("--- QUAN LY TAI KHOAN NGUOI DUNG ---");
+        print("1. Danh sach tai khoan");
+        print("2. Cap nhat vai tro");
+        print("0. Quay lai");
+        return readInt("Chon chuc nang: ");
+    }
+    public int showCartMenu() {
+        print("");
+        print("--- GIO HANG / HOA DON ---");
+        print("1. Dat hang");
+        print("2. Xac nhan thanh toan");
+        print("3. Huy don / hoan tien");
+        print("4. Tim kiem hoa don");
+        print("0. Quay lai");
+        return readInt("Chon chuc nang: ");
+    }
+    public int showRentalMenu() {
+        print("");
+        print("--- QUAN LY THUE SACH ---");
+        print("1. Thue sach");
+        print("2. Tra sach");
+        print("3. Tim kiem phieu thue");
+        print("4. Canh bao qua han tra sach");
+        print("0. Quay lai");
+        return readInt("Chon chuc nang: ");
+    }
 }
