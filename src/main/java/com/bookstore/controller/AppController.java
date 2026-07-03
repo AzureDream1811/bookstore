@@ -16,8 +16,6 @@ public class AppController {
     private final SalesController salesController;
 
 
-
-
     // TODO: 1. Khai báo thêm các Controller/Service khác ở đây
     // VD: private BookController bookController;
     //     private CartService cartService;
@@ -53,16 +51,21 @@ public class AppController {
         }
     }
 
-    /** @return false neu nguoi dung chon "Thoat" */
+    /**
+     * @return false neu nguoi dung chon "Thoat"
+     */
     private boolean handleGuestMenu() {
         switch (view.showGuestMenu()) {
             case 1 -> currentUser = authController.login();
             case 2 -> currentUser = authController.register();
-            case 0 -> { return false; }
+            case 0 -> {
+                return false;
+            }
             default -> view.printError("Lua chon khong hop le");
         }
         return true;
     }
+
     //menu cho khach
     private boolean handleCustomerMenu() {
         String status = "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")";
@@ -78,25 +81,30 @@ public class AppController {
         }
         return true;
     }
+
     //menu cho nhan vien
     private boolean handleStaffMenu() {
-        String status = "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")";
+        String status = "Trang thai: "
+                + currentUser.getFullName()
+                + " (" + currentUser.getRole() + ")";
         switch (view.showStaffMenu(status)) {
             case 1 -> handleBookMenu(currentUser);
             case 2 -> handleInventoryMenu();
             case 3 -> discountController.open();
             case 4 -> currentUser = cartController.open(currentUser);
-            //case 5 -> reportController.open(); khong thay open() trong reportController
-            case 6 -> handleUserMenu();
-            case 7 -> currentUser = salesController.open(currentUser);
+            case 5 -> rentalController.openStaff();
+            case 6 -> handleReportMenu();
+            case 7 -> handleUserMenu();
+            case 8 -> rentalController.openStaff();
             case 0 -> {
-                this.currentUser = null;
+                currentUser = null;
                 view.print("Da dang xuat.");
             }
-            default -> view.printError("Ban khong co quyen truy cap chuc nang nay");
+            default -> view.printError("Lua chon khong hop le");
         }
         return true;
     }
+
     //menu search cua khach
     private void handleBookMenuCustomer(User user) {
         boolean back = false;
