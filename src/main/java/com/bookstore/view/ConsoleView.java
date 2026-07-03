@@ -110,7 +110,7 @@ public class ConsoleView {
         print("");
         print("=== HE THONG QUAN LY NHA SACH ===");
         print(userStatus);
-        print("1. Quan ly sach");
+        print("1. Xem và tìm kiếm sách");
         print("2. Gio hang / hoa don");
         print("3. Quan ly ban hang");
         print("0. Dang xuat");
@@ -136,7 +136,7 @@ public class ConsoleView {
     /** Menu sach rut gon danh cho khach hang: chi xem + tim kiem */
     public int showBookMenuCustomer() {
         print("");
-        print("--- QUAN LY SACH ---");
+        print("--- XEM VÀ TÌM KIẾM SÁCH ---");
         print("1. Danh sach sach");
         print("2. Tim kiem va goi y sach");
         print("0. Quay lai");
