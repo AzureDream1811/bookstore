@@ -16,6 +16,11 @@ import com.bookstore.service.CartService;
 import com.bookstore.service.DiscountService;
 import com.bookstore.service.ReportService;
 import com.bookstore.service.RentalService;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import com.bookstore.controller.*;
 import com.bookstore.view.ConsoleView;
 
