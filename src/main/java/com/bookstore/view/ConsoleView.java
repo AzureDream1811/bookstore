@@ -89,7 +89,13 @@ public class ConsoleView {
         System.out.println("-------------------------------------");
         System.out.println("DOANH THU THUẦN    : " + totalResult.getNetRevenue());
     }
+    public void showUpdateSuccess() {
+        print("Cap nhat trang thai thanh cong.");
+    }
 
+    public void showUpdateError() {
+        printError("Cap nhat trang thai that bai.");
+    }
     public void displayError(String message) {
         System.out.println("[LỖI] " + message);
     }

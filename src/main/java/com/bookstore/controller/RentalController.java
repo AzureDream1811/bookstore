@@ -183,7 +183,7 @@ public class RentalController {
 
                 case 0 -> back = true;
 
-                default -> view.printError("Lua chon khong hop le.");
+                default -> view.printError("Lua chon khong hop le");
             }
         }
     }
@@ -242,18 +242,16 @@ public class RentalController {
 
     public void updateRentalStatus() {
 
-        int rentalId = view.inputRentalId();
-
-        String status = view.inputStatus();
-
         try {
+            int rentalId = view.inputRentalId();
+            String status = view.inputStatus();
 
-            boolean ok = rentalService.updateStatus(rentalId, status);
+            boolean success = rentalService.updateStatus(rentalId, status);
 
-            if (ok) {
-                view.print("Cap nhat trang thai thanh cong.");
+            if (success) {
+                view.showUpdateSuccess();
             } else {
-                view.print("Khong tim thay phieu thue.");
+                view.showUpdateError();
             }
 
         } catch (Exception e) {
