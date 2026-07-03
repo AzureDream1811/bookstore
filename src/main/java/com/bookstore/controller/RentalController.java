@@ -12,9 +12,11 @@ import java.util.List;
 public class RentalController {
     private final ConsoleView view;
     private final RentalService rentalService = new RentalService();
+    private final PaymentController paymentController;
 
     public RentalController(ConsoleView view) {
         this.view = view;
+        this.paymentController = new PaymentController(view);
     }
 
     public User open(User currentUser) {
@@ -23,7 +25,7 @@ public class RentalController {
             int choice = view.showRentalMenu();
             switch (choice) {
                 case 1 -> currentUser = rentBook(currentUser);
-                case 2 -> returnBook();
+                case 2 -> returnBook(currentUser);
                 case 3 -> searchRentals();
                 case 4 -> showOverdueRentals();
                 case 0 -> back = true;
@@ -41,8 +43,6 @@ public class RentalController {
         }
 
         try {
-
-            // Hiển thị danh sách sách trước
             List<Book> books = rentalService.getAvailableBooks();
 
             if (books.isEmpty()) {
@@ -64,7 +64,6 @@ public class RentalController {
                 ));
             }
 
-            // Sau đó mới nhập
             int bookId = view.inputBookId();
             int days = view.inputRentalDays();
 
@@ -86,13 +85,46 @@ public class RentalController {
         return currentUser;
     }
 
-    public void returnBook() {
-
-        int rentalId = view.inputRentalId();
+    public void returnBook(User currentUser) {
 
         try {
 
-            double lateFee = rentalService.returnBook(rentalId);
+            List<Rental> list =
+                    rentalService.getRentalTickets(currentUser.getUserId());
+
+            if (list.isEmpty()) {
+                view.print("Ban khong co phieu thue.");
+                return;
+            }
+
+            view.showRentalTickets(list);
+
+            int rentalId = view.inputRentalId();
+
+            Rental rental = rentalService.findRental(rentalId);
+
+            if (rental == null) {
+                view.printError("Khong tim thay phieu.");
+                return;
+            }
+
+            view.showRentalDetail(rental);
+
+            double lateFee = rentalService.calculateLateFee(rentalId);
+
+            if (lateFee > 0) {
+
+                view.print("Phi tre han: " + lateFee);
+
+                boolean success = paymentController.processLateFee(lateFee);
+
+                if (!success) {
+                    view.printError("Thanh toan that bai.");
+                    return;
+                }
+            }
+
+            rentalService.returnBook(rentalId);
 
             view.showReturnSuccess(lateFee);
 

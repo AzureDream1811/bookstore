@@ -300,7 +300,21 @@ public class ConsoleView {
         print("");
         print("===== THUE SACH =====");
     }
+    public void showRentalTickets(List<Rental> list) {
 
+        print("");
+        print("===== DANH SACH PHIEU THUE =====");
+
+        for (Rental r : list) {
+
+            print("--------------------------------");
+            print("Ma phieu : " + r.getRentalId());
+            print("Ma sach  : " + r.getBookId());
+            print("Ngay thue: " + r.getRentDate());
+            print("Han tra  : " + r.getDueDate());
+            print("Trang thai: " + r.getStatus());
+        }
+    }
     public int inputBookId() {
         return readInt("Nhap ma sach: ");
     }
