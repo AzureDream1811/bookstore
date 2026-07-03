@@ -195,4 +195,12 @@ public class ConsoleView {
         print("0. Về trang chủ (Quay lại)");
         return readInt("Chọn chức năng: ");
     }
+    public int showChartTypeMenu() {
+        print("\n--- DANH SÁCH LOẠI BIỂU ĐỒ HỖ TRỢ ---");
+        print("1. Biểu đồ cột (Bar Chart) - So sánh theo ngày");
+        print("2. Biểu đồ tròn (Pie Chart) - Tỷ lệ dòng tiền tổng cộng");
+        print("3. Biểu đồ đường (Line Chart) - Biến động xu hướng");
+        print("0. Hủy bỏ quay lại");
+        return readInt("Chọn loại biểu đồ bạn muốn vẽ: ");
+    }
 }
