@@ -1,6 +1,7 @@
 package com.bookstore.controller;
 
 import com.bookstore.model.ReportFilter;
+import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
 import com.bookstore.service.ReportService;
 import com.bookstore.view.ConsoleView;
@@ -24,7 +25,7 @@ public class ReportController {
                 ReportFilter filter = view.getRevenueFilterInput();
 
                 // Basic Flow 5, 6, 7: Gọi Service xử lý
-                RevenueResult result = reportService.generateRevenueReport(filter);
+                RevenueReportData result = reportService.generateRevenueReport(filter);
 
                 // Basic Flow 9 & 10: Hiển thị kết quả
                 view.displayRevenueResult(result);
@@ -32,8 +33,10 @@ public class ReportController {
 
             } catch (IllegalArgumentException e) {
                 // Exception Flow 5.1.1 & 5.1.2: Lỗi thời gian, vòng lặp while sẽ quay lại bước nhập
+                e.printStackTrace();
                 view.displayError(e.getMessage());
             } catch (Exception e) {
+                e.printStackTrace();
                 // Exception Flow 2.1, 6.1, 6.2: Lỗi hệ thống hoặc không có dữ liệu, hiển thị lỗi và dừng
                 view.displayError(e.getMessage());
                 isSuccess = true; // Thoát vòng lặp để quay lại menu chính
@@ -42,4 +45,5 @@ public class ReportController {
 
         // Basic Flow 11: Chọn thao tác tiếp theo (Xuất Excel, Xem biểu đồ...) có thể gọi menu ở đây
     }
+
 }

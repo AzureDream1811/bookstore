@@ -5,19 +5,24 @@ import com.bookstore.model.RevenueResult;
 import com.bookstore.util.DBConnection;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReportDAO {
-    public RevenueResult getRevenueByFilter(ReportFilter filter) throws SQLException {
-        RevenueResult result = null;
+    public List<RevenueResult> getRevenueByFilter(ReportFilter filter) throws SQLException {
+        List<RevenueResult> list = new ArrayList<>();
         // SQL query sử dụng hàm SUM để gom nhóm dữ liệu.
         // Lọc trạng thái: Completed, Paid, Delivered.
-        String sql = "SELECT " +
+        String sql = "SELECT DATE(created_date) as report_date, " +
                 "SUM(total_product_amount) as total_amount, " +
                 "SUM(discount) as total_discount, " +
                 "SUM(shipping_fee) as total_shipping, " +
                 "SUM(refund_amount) as total_refund " +
                 "FROM orders " +
-                "WHERE created_date BETWEEN ? AND ? " +  "AND status IN ('Completed', 'Paid', 'Delivered')";
+                "WHERE DATE(created_date) BETWEEN ? AND ? " +
+                "AND status IN ('Completed', 'Paid', 'Delivered') " +
+                "GROUP BY report_date " +
+                "ORDER BY report_date ASC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -25,21 +30,18 @@ public class ReportDAO {
             stmt.setDate(2, Date.valueOf(filter.getToDate()));
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    // Kiểm tra null nếu không có dữ liệu
-                    if (rs.getObject("total_amount") == null) {
-                        return null; // Phục vụ Exception Flow 6.2
-                    }
-
-                    result = new RevenueResult();
-                    result.setTotalProductAmount(rs.getDouble("total_amount"));
-                    result.setTotalDiscount(rs.getDouble("total_discount"));
-                    result.setTotalShippingFee(rs.getDouble("total_shipping"));
-                    result.setTotalRefund(rs.getDouble("total_refund"));
-                    result.calculateNetRevenue();
+                while (rs.next()) { // Đổi từ if (rs.next()) thành while để lấy nhiều dòng
+                    RevenueResult row = new RevenueResult();
+                    row.setDate(rs.getDate("report_date").toLocalDate()); // Lưu ngày
+                    row.setTotalProductAmount(rs.getDouble("total_amount"));
+                    row.setTotalDiscount(rs.getDouble("total_discount"));
+                    row.setTotalShippingFee(rs.getDouble("total_shipping"));
+                    row.setTotalRefund(rs.getDouble("total_refund"));
+                    row.calculateNetRevenue();
+                    list.add(row);
                 }
             }
         }
-        return result;
+        return list;
     }
 }

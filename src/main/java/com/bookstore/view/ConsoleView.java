@@ -1,6 +1,7 @@
 package com.bookstore.view;
 
 import com.bookstore.model.ReportFilter;
+import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
 
 import java.time.LocalDate;
@@ -55,14 +56,35 @@ public class ConsoleView {
         return new ReportFilter(fromDate, toDate);
     }
 
-    public void displayRevenueResult(RevenueResult result) {
+    public void displayRevenueResult(RevenueReportData reportData) {
+        java.util.List<RevenueResult> dailyResults = reportData.getDailyResults();
+        RevenueResult totalResult = reportData.getTotalResult();
+
+        System.out.println("\n==================================== BẢNG CHI TIẾT DOANH THU THEO NGÀY ====================================");
+        // Định dạng tiêu đề cột cho thẳng hàng
+        String formatHeader = "| %-12s | %-18s | %-15s | %-18s | %-15s | %-20s |\n";
+        String formatRow    = "| %-12s | %-18.1f | %-15.1f | %-18.1f | %-15.1f | %-20.1f |\n";
+
+        System.out.printf(formatHeader, "Ngày", "Tiền sản phẩm", "Giảm giá", "Phí vận chuyển", "Hoàn tiền", "Doanh thu thuần");
+        System.out.println("-----------------------------------------------------------------------------------------------------------");
+
+        for (RevenueResult row : dailyResults) {
+            System.out.printf(formatRow,
+                    row.getDate().format(formatter),
+                    row.getTotalProductAmount(),
+                    row.getTotalDiscount(),
+                    row.getTotalShippingFee(),
+                    row.getTotalRefund(),
+                    row.getNetRevenue());
+        }
+        System.out.println("-----------------------------------------------------------------------------------------------------------");
         System.out.println("\n=== KẾT QUẢ BÁO CÁO DOANH THU THUẦN ===");
-        System.out.println("Tổng tiền sản phẩm : " + result.getTotalProductAmount());
-        System.out.println("- Giảm giá         : " + result.getTotalDiscount());
-        System.out.println("+ Phí vận chuyển   : " + result.getTotalShippingFee());
-        System.out.println("- Hoàn tiền        : " + result.getTotalRefund());
+        System.out.println("Tổng tiền sản phẩm : " + totalResult.getTotalProductAmount());
+        System.out.println("- Giảm giá         : " + totalResult.getTotalDiscount());
+        System.out.println("+ Phí vận chuyển   : " + totalResult.getTotalShippingFee());
+        System.out.println("- Hoàn tiền        : " + totalResult.getTotalRefund());
         System.out.println("-------------------------------------");
-        System.out.println("DOANH THU THUẦN    : " + result.getNetRevenue());
+        System.out.println("DOANH THU THUẦN    : " + totalResult.getNetRevenue());
     }
 
     public void displayError(String message) {
