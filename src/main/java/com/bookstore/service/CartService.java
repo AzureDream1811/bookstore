@@ -151,30 +151,38 @@ public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCod
     }
 
     /** Xu ly hoan tien: chi ap dung cho don da PAID, hoan lai ton kho va danh dau REFUNDED. */
+    // Cập nhật method processRefund
     public double processRefund(int orderId) throws SQLException {
         Order order = orderDAO.findById(orderId);
         if (order == null) {
-            throw new IllegalArgumentException("Khong tim thay don hang id=" + orderId);
+            throw new IllegalArgumentException("Không tìm thấy đơn hàng id=" + orderId);
         }
         if (!"PAID".equals(order.getStatus())) {
-            throw new IllegalStateException("Chi co the hoan tien cho don hang da thanh toan (PAID). Trang thai hien tai: " + order.getStatus());
+            throw new IllegalStateException("Chỉ có thể hoàn tiền cho đơn hàng đã thanh toán (PAID).");
         }
 
-        try (Connection conn = com.bookstore.util.DBConnection.getConnection()) {
+        try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            try {
-                for (OrderDetail detail : order.getDetails()) {
-                    bookDAO.updateStock(conn, detail.getBookId(), detail.getQuantity());
-                }
-                orderDAO.updateStatus(conn, orderId, "REFUNDED");
+        try {
+            // Hoàn lại tồn kho
+            for (OrderDetail detail : order.getDetails()) {
+                bookDAO.updateStock(conn, detail.getBookId(), detail.getQuantity());
+            }
+
+            // Cập nhật trạng thái đơn hàng
+            orderDAO.updateStatus(conn, orderId, "REFUNDED");
+
+            // Tạo hóa đơn hoàn tiền (nếu cần)
+            // Có thể thêm logic tạo refund record ở đây
+
                 conn.commit();
                 return order.getTotalAmount();
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
-            }
         }
     }
+}
 
     /**
      * Doi tra san pham: tra lai oldQuantity cuon oldBookId, lay newQuantity cuon newBookId,
