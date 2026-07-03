@@ -14,7 +14,7 @@ public class RentalService {
 
     private static final int MAX_ACTIVE_RENTALS = 5;
     private static final double LATE_FEE_PER_DAY = 5000;
-
+    private static final double RENT_RATE = 0.15;
     private final RentalDAO rentalDAO = new RentalDAO();
     private final BookDAO bookDAO = new BookDAO();
 
@@ -47,8 +47,7 @@ public class RentalService {
                 "RENTED"
         );
 
-        rental.setRentalFee(book.getRentPricePerDay() * days);
-
+        rental.setRentalFee(book.getPrice() * RENT_RATE * days);
         int id = rentalDAO.insert(rental);
 
         if (id <= 0) {
