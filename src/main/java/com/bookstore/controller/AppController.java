@@ -75,6 +75,7 @@ public class AppController {
             case 1 -> handleBookMenuCustomer(currentUser);
             case 2 -> currentUser = cartController.open(currentUser);
             case 3 -> currentUser = salesController.open(currentUser);
+            case 4 -> currentUser = rentalController.open(currentUser);
             case 0 -> {
                 this.currentUser = null;
                 view.print("Da dang xuat.");
