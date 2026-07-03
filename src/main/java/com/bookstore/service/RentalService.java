@@ -99,5 +99,17 @@ public class RentalService {
     public List<Rental> listOverdueRentals() throws SQLException {
         return rentalDAO.findOverdue();
     }
+    public List<Rental> getAllRentals() throws SQLException {
+        return rentalDAO.getAllRentals();
+    }
 
+    public List<Rental> searchRental(String keyword) throws SQLException {
+        return rentalDAO.searchRental(keyword);
+    }
+
+    public boolean updateStatus(int rentalId, String status)
+            throws SQLException {
+
+        return rentalDAO.updateStatus(rentalId, status);
+    }
 }

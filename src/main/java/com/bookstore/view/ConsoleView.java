@@ -1,5 +1,6 @@
 package com.bookstore.view;
 
+import com.bookstore.model.Rental;
 import com.bookstore.model.ReportFilter;
 import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
@@ -32,7 +33,9 @@ public class ConsoleView {
             }
         }
     }
-
+    public String inputStatus() {
+        return readLine("Nhap trang thai moi (RENTED/RETURNED/CANCELLED): ");
+    }
     public double readDouble(String prompt) {
         while (true) {
             try {
@@ -89,7 +92,13 @@ public class ConsoleView {
         System.out.println("-------------------------------------");
         System.out.println("DOANH THU THUẦN    : " + totalResult.getNetRevenue());
     }
+    public void showUpdateSuccess() {
+        print("Cap nhat trang thai thanh cong.");
+    }
 
+    public void showUpdateError() {
+        printError("Cap nhat trang thai that bai.");
+    }
     public void displayError(String message) {
         System.out.println("[LỖI] " + message);
     }
@@ -177,6 +186,7 @@ public class ConsoleView {
         print("5. Thong ke bao cao");
         print("6. Quan ly tai khoan nguoi dung");
         print("7. Quan ly ban hang");
+        print("8. Quan ly phieu thue");
         print("0. Dang xuat");
         return readInt("Chon chuc nang: ");
     }
@@ -319,7 +329,35 @@ public class ConsoleView {
         print("===== TRA SACH THANH CONG =====");
         print("Phi tre han : " + lateFee);
     }
+// ==========================================
+// UC22 - QUAN LY PHIEU THUE
+// ==========================================
 
+    public int showRentalManagementMenu() {
+
+        print("");
+        print("===== QUAN LY PHIEU THUE =====");
+        print("1. Danh sach phieu thue");
+        print("2. Tim kiem phieu thue");
+        print("3. Cap nhat trang thai");
+        print("0. Quay lai");
+
+        return readInt("Chon chuc nang: ");
+    }
+
+    public void showRentalDetail(Rental rental) {
+
+        print("--------------------------------");
+        print("Ma phieu   : " + rental.getRentalId());
+        print("User       : " + rental.getUserId());
+        print("Book       : " + rental.getBookId());
+        print("Ngay thue  : " + rental.getRentDate());
+        print("Han tra    : " + rental.getDueDate());
+        print("Ngay tra   : " + rental.getReturnDate());
+        print("Tien thue  : " + rental.getRentalFee());
+        print("Phi tre han: " + rental.getLateFee());
+        print("Trang thai : " + rental.getStatus());
+    }
     public void showBookList(com.bookstore.model.Page<com.bookstore.model.Book> bookPage) {
         print("");
         print("--- DANH SACH SACH ---");
