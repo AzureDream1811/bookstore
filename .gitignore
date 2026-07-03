@@ -26,7 +26,15 @@ replay_pid*
 
 # IDE
 .idea/
+.vscode/
+.classpath
+.project
 COPILOT.md
+GPT.md
+.settings
 
 # environment variables
 .env
+
+# AI helper
+.junie
