@@ -68,6 +68,7 @@ public class AppController {
     // =========================================================================
 
     private void handleBookMenu() {
+        bookController.listAll();
         boolean back = false;
         while (!back) {
             switch (view.showBookMenu()) {

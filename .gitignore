@@ -29,6 +29,7 @@ replay_pid*
 .vscode/
 .classpath
 .project
+module-info
 COPILOT.md
 GPT.md
 .settings
@@ -38,3 +39,6 @@ GPT.md
 
 # AI helper
 .junie
+
+# Java module descriptor
+module-info.java

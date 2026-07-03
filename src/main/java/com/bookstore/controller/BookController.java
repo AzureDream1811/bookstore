@@ -19,7 +19,7 @@ public class BookController {
             if (books.isEmpty()) { view.print("Chua co sach nao"); return; }
             books.forEach(b -> view.print(b.toString()));
         } catch (SQLException e) {
-            view.printError(e.getMessage());
+            view.printError("Loi he thong: " + e.getMessage());
         }
     }
 
@@ -54,17 +54,25 @@ public class BookController {
     }
 
     public void addBook() {
-        String title = view.readLine("Ten sach: ");
-        String author = view.readLine("Tac gia: ");
-        String genre = view.readLine("The loai: ");
-        double price = view.readDouble("Gia ban: ");
-        double rentPrice = view.readDouble("Gia thue/ngay: ");
-        int stock = view.readInt("So luong ton: ");
-        try {
-            Book book = bookService.addBook(title, author, genre, price, rentPrice, stock);
-            view.print("Them sach thanh cong, bookId=" + book.getBookId());
-        } catch (IllegalArgumentException | SQLException e) {
-            view.printError(e.getMessage());
+        while (true) {
+            view.print("--- FORM THEM SACH ---");
+            String title = view.readLine("Ten sach: ");
+            String author = view.readLine("Tac gia: ");
+            String genre = view.readLine("The loai: ");
+            double price = view.readDouble("Gia ban: ");
+            double rentPrice = view.readDouble("Gia thue/ngay: ");
+            int stock = view.readInt("So luong ton: ");
+            try {
+                Book book = bookService.addBook(title, author, genre, price, rentPrice, stock);
+                view.print("Them sach thanh cong, bookId=" + book.getBookId());
+                listAll();
+                return;
+            } catch (IllegalArgumentException e) {
+                view.printError(e.getMessage());
+            } catch (SQLException e) {
+                view.printError("Loi he thong: " + e.getMessage());
+                return;
+            }
         }
     }
 
@@ -73,19 +81,34 @@ public class BookController {
         try {
             Book book = bookService.getById(id);
             if (book == null) { view.printError("Khong tim thay sach"); return; }
-            view.print("Hien tai: " + book);
-            String title = view.readLine("Ten sach moi (Enter de giu nguyen): ");
-            if (!title.isBlank()) book.setTitle(title);
-            String priceStr = view.readLine("Gia moi (Enter de giu nguyen): ");
-            if (!priceStr.isBlank()) book.setPrice(Double.parseDouble(priceStr));
-            String stockStr = view.readLine("So luong ton moi (Enter de giu nguyen): ");
-            if (!stockStr.isBlank()) book.setStockQuantity(Integer.parseInt(stockStr));
-            bookService.updateBook(book);
-            view.print("Cap nhat thanh cong");
-        } catch (NumberFormatException e) {
-            view.printError("Gia tri nhap khong hop le");
+            while (true) {
+                view.print("--- FORM SUA SACH ---");
+                view.print("Hien tai: " + book);
+                String title = view.readLine("Ten sach moi (Enter de giu nguyen): ");
+                if (!title.isBlank()) book.setTitle(title);
+                String author = view.readLine("Tac gia moi (Enter de giu nguyen): ");
+                if (!author.isBlank()) book.setAuthor(author);
+                String genre = view.readLine("The loai moi (Enter de giu nguyen): ");
+                if (!genre.isBlank()) book.setGenre(genre);
+                String priceStr = view.readLine("Gia moi (Enter de giu nguyen): ");
+                String rentPriceStr = view.readLine("Gia thue/ngay moi (Enter de giu nguyen): ");
+                String stockStr = view.readLine("So luong ton moi (Enter de giu nguyen): ");
+                try {
+                    if (!priceStr.isBlank()) book.setPrice(Double.parseDouble(priceStr));
+                    if (!rentPriceStr.isBlank()) book.setRentPricePerDay(Double.parseDouble(rentPriceStr));
+                    if (!stockStr.isBlank()) book.setStockQuantity(Integer.parseInt(stockStr));
+                    bookService.updateBook(book);
+                    view.print("Cap nhat thanh cong");
+                    listAll();
+                    return;
+                } catch (NumberFormatException e) {
+                    view.printError("Gia hoac so luong khong hop le");
+                } catch (IllegalArgumentException e) {
+                    view.printError(e.getMessage());
+                }
+            }
         } catch (IllegalArgumentException | SQLException e) {
-            view.printError(e.getMessage());
+            view.printError("Loi he thong: " + e.getMessage());
         }
     }
 
@@ -94,8 +117,9 @@ public class BookController {
         try {
             bookService.hideBook(id);
             view.print("Da an sach id=" + id);
+            listAll();
         } catch (SQLException e) {
-            view.printError(e.getMessage());
+            view.printError("Loi he thong: " + e.getMessage());
         }
     }
 
@@ -105,7 +129,7 @@ public class BookController {
             bookService.markFaulty(id, true);
             view.print("Da danh dau sach id=" + id + " la LOI");
         } catch (SQLException e) {
-            view.printError(e.getMessage());
+            view.printError("Loi he thong: " + e.getMessage());
         }
     }
 }
