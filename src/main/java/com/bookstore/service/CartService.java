@@ -17,7 +17,6 @@ public class CartService {
     private final BookDAO bookDAO = new BookDAO();
     private final VoucherDAO voucherDAO = new VoucherDAO();
 
-    /** Tao don hang tu gio hang (danh sach OrderDetail chua orderId), tru ton kho, tra ve Order da luu. */
     public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCode) throws SQLException {
         if (cartItems.isEmpty()) throw new IllegalArgumentException("Gio hang trong");
         double total = 0;
@@ -60,7 +59,6 @@ public class CartService {
         }
     }
 
-    /** Kiem tra voucher hop le + dieu kien don toi thieu, tra ve so tien duoc giam. */
     public double applyVoucher(String code, double orderTotal) throws SQLException {
         Voucher voucher = voucherDAO.findByCode(code);
         if (voucher == null || !voucher.isValid()) {
@@ -113,5 +111,123 @@ public class CartService {
 
     public List<Order> listOrdersByUser(int userId) throws SQLException {
         return orderDAO.findByUserId(userId);
+    }
+
+    /** Quan ly hoa don: liet ke toan bo hoa don, moi nhat truoc. */
+    public List<Order> listAllOrders() throws SQLException {
+        return orderDAO.findAll();
+    }
+
+    /** Tra ve thong tin sach de xem truoc (dung khi doi tra san pham). */
+    public Book getBookById(int bookId) throws SQLException {
+        return bookDAO.findById(bookId);
+    }
+
+    /** Xu ly hoan tien: chi ap dung cho don da PAID, hoan lai ton kho va danh dau REFUNDED. */
+    public double processRefund(int orderId) throws SQLException {
+        Order order = orderDAO.findById(orderId);
+        if (order == null) {
+            throw new IllegalArgumentException("Khong tim thay don hang id=" + orderId);
+        }
+        if (!"PAID".equals(order.getStatus())) {
+            throw new IllegalStateException("Chi co the hoan tien cho don hang da thanh toan (PAID). Trang thai hien tai: " + order.getStatus());
+        }
+
+        try (Connection conn = com.bookstore.util.DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                for (OrderDetail detail : order.getDetails()) {
+                    bookDAO.updateStock(conn, detail.getBookId(), detail.getQuantity());
+                }
+                orderDAO.updateStatus(conn, orderId, "REFUNDED");
+                conn.commit();
+                return order.getTotalAmount();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Doi tra san pham: tra lai oldQuantity cuon oldBookId, lay newQuantity cuon newBookId,
+     * cap nhat lai chi tiet don hang va tong tien theo chenh lech gia.
+     * Tra ve chenh lech tien: duong = khach can tra them, am = hoan lai cho khach.
+     */
+    public double exchangeProduct(int orderId, int oldBookId, int oldQuantity, int newBookId, int newQuantity) throws SQLException {
+        if (oldQuantity <= 0 || newQuantity <= 0) {
+            throw new IllegalArgumentException("So luong doi tra phai lon hon 0");
+        }
+        Order order = orderDAO.findById(orderId);
+        if (order == null) {
+            throw new IllegalArgumentException("Khong tim thay don hang id=" + orderId);
+        }
+        if (!"PAID".equals(order.getStatus())) {
+            throw new IllegalStateException("Chi co the doi tra san pham cho don hang da thanh toan (PAID). Trang thai hien tai: " + order.getStatus());
+        }
+
+        OrderDetail oldDetail = null;
+        for (OrderDetail d : order.getDetails()) {
+            if (d.getBookId() == oldBookId) {
+                oldDetail = d;
+                break;
+            }
+        }
+        if (oldDetail == null) {
+            throw new IllegalArgumentException("Don hang khong co san pham voi bookId=" + oldBookId);
+        }
+        if (oldDetail.getQuantity() < oldQuantity) {
+            throw new IllegalArgumentException("So luong doi tra vuot qua so luong da mua (" + oldDetail.getQuantity() + ")");
+        }
+
+        Book newBook = bookDAO.findById(newBookId);
+        if (newBook == null || !newBook.isAvailable()) {
+            throw new IllegalStateException("San pham doi den khong kha dung");
+        }
+        if (newBook.getStockQuantity() < newQuantity) {
+            throw new IllegalStateException("San pham doi den khong du ton kho");
+        }
+
+        double oldValue = oldDetail.getPrice() * oldQuantity;
+        double newValue = newBook.getPrice() * newQuantity;
+        double priceDiff = newValue - oldValue;
+
+        try (Connection conn = com.bookstore.util.DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                bookDAO.updateStock(conn, oldBookId, oldQuantity);
+                int remainingOld = oldDetail.getQuantity() - oldQuantity;
+                if (remainingOld <= 0) {
+                    orderDAO.deleteDetail(conn, orderId, oldBookId);
+                } else {
+                    orderDAO.updateDetailQuantity(conn, orderId, oldBookId, remainingOld);
+                }
+
+                bookDAO.updateStock(conn, newBookId, -newQuantity);
+                OrderDetail existingNew = orderDAO.findDetail(conn, orderId, newBookId);
+                if (existingNew != null) {
+                    orderDAO.updateDetailQuantity(conn, orderId, newBookId, existingNew.getQuantity() + newQuantity);
+                } else {
+                    orderDAO.addDetail(conn, new OrderDetail(orderId, newBookId, newQuantity, newBook.getPrice()));
+                }
+
+                double newTotal = order.getTotalAmount() + priceDiff;
+                orderDAO.updateTotal(conn, orderId, newTotal);
+                conn.commit();
+                return priceDiff;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+
+    /** Quan ly hoa don: lay chi tiet day du 1 don hang (dung cho xem/kiem tra hoa don). */
+    public Order getInvoiceDetail(int orderId) throws SQLException {
+        Order order = orderDAO.findById(orderId);
+        if (order == null) {
+            throw new IllegalArgumentException("Khong tim thay hoa don id=" + orderId);
+        }
+        return order;
     }
 }

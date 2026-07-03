@@ -21,9 +21,14 @@ public class BookDAO {
     }
 
     public Book findById(int bookId) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return findById(conn, bookId);
+        }
+    }
+
+    public Book findById(Connection conn, int bookId) throws SQLException {
         String sql = "SELECT * FROM book WHERE book_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookId);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? map(rs) : null;
@@ -48,10 +53,15 @@ public class BookDAO {
     }
 
     public int insert(Book book) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return insert(conn, book);
+        }
+    }
+
+    public int insert(Connection conn, Book book) throws SQLException {
         String sql = "INSERT INTO book (title, author, genre, price, rent_price_per_day, stock_quantity, is_faulty, status) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             bind(ps, book);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
