@@ -6,6 +6,8 @@ import com.bookstore.service.ChartService;
 import com.bookstore.service.ExportExcelService;
 import com.bookstore.service.ReportService;
 import com.bookstore.view.ConsoleView;
+import com.bookstore.model.BestSellerFilter;
+import com.bookstore.model.BestSellerItem;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -111,6 +113,23 @@ public class ReportController {
                 } catch (Exception e) {
                     // Exception Flow 8.1: Không thể render biểu đồ -> Cho phép chọn/thử lại
                     view.displayError(e.getMessage());
+                }
+            }
+        }
+        
+        public void handleBestSellerReportRequest() {
+            boolean isSuccess = false;
+            while (!isSuccess) {
+                try {
+                    BestSellerFilter filter = view.getBestSellerFilterInput();
+                    List<BestSellerItem> result = reportService.generateBestSellerReport(filter);
+                    view.displayBestSellerResult(result, filter.getType());
+                    isSuccess = true;
+                } catch (IllegalArgumentException e) {
+                    view.displayError(e.getMessage());
+                } catch (Exception e) {
+                    view.displayError(e.getMessage());
+                    isSuccess = true;
                 }
             }
         }
