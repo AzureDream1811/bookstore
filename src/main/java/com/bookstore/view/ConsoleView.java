@@ -76,6 +76,7 @@ public class ConsoleView {
         print("7. Quan ly thue sach");
         print("8. Thong ke bao cao");
         print("9. Quan ly tai khoan nguoi dung");
+        print("10. Quan ly ban hang");
         print("0. Thoat");
         return readInt("Chon chuc nang: ");
     }
