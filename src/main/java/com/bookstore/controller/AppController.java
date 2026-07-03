@@ -15,18 +15,27 @@ public class AppController {
     private final ReportController reportController;
     private final SalesController salesController;
 
+
+
+
+    // TODO: 1. Khai báo thêm các Controller/Service khác ở đây
+    // VD: private BookController bookController;
+    //     private CartService cartService;
+    //     ...
+
     private User currentUser = null;
 
-    public AppController(ConsoleView view, AuthController authController) {
+    // TODO: 2. Nhớ truyền thêm các Controller đó vào constructor này
+    public AppController(ConsoleView view, AuthController authController, ReportController reportController) {
         this.view = view;
         this.authController = authController;
+        this.reportController = reportController;
         this.bookController = new BookController(view);
         this.inventoryController = new InventoryController(view);
         this.userController = new UserController(view);
         this.discountController = new DiscountController(view);
         this.cartController = new CartController(view);
         this.rentalController = new RentalController(view);
-        this.reportController = new ReportController(view);
         this.salesController = new SalesController(view);
     }
 
@@ -45,7 +54,7 @@ public class AppController {
                 case 5 -> discountController.open();
                 case 6 -> currentUser = cartController.open(currentUser);
                 case 7 -> currentUser = rentalController.open(currentUser);
-                case 8 -> reportController.open();
+                case 8 -> handleReportMenu();
                 case 9 -> handleUserMenu();
                 case 10 -> currentUser = salesController.open(currentUser);
                 case 0 -> running = false;
@@ -53,6 +62,10 @@ public class AppController {
             }
         }
     }
+
+    // =========================================================================
+    // CÁC HÀM XỬ LÝ MENU CON ( SẼ HOÀN THIỆN LOGIC Ở ĐÂY)
+    // =========================================================================
 
     private void handleBookMenu() {
         boolean back = false;
@@ -97,4 +110,20 @@ public class AppController {
     private void handleCartMenu() {
         currentUser = cartController.open(currentUser);
     }
+
+
+    private void handleReportMenu() {
+        boolean back = false;
+        while (!back) {
+            int choice = view.showReportMenu();
+            switch (choice) {
+                case 1 -> reportController.handleRevenueReportRequest();
+                // TODO (Bạn của bạn): 7. Bổ sung các báo cáo khác ở đây nếu có
+                case 0 -> back = true;
+                default -> view.printError("Lựa chọn không hợp lệ");
+            }
+        }
+    }
 }
+
+

@@ -79,12 +79,15 @@ CREATE TABLE IF NOT EXISTS voucher
     used             BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS orders
-(
-    order_id     INT AUTO_INCREMENT PRIMARY KEY,
-    user_id      INT NOT NULL,
-    total_amount DOUBLE      DEFAULT 0,
-    status       VARCHAR(20) DEFAULT 'PENDING',
+CREATE TABLE IF NOT EXISTS orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    total_product_amount DOUBLE DEFAULT 0,  -- Tổng tiền gốc của các sản phẩm (Chưa giảm/cộng phí)
+    discount DOUBLE DEFAULT 0,              -- Số tiền được giảm giá (từ voucher, combo...)
+    shipping_fee DOUBLE DEFAULT 0,          -- Phí vận chuyển
+    refund_amount DOUBLE DEFAULT 0,         -- Số tiền hoàn trả (nếu có refund phát sinh)
+    total_amount DOUBLE DEFAULT 0,          -- Tổng số tiền khách phải trả thực tế
+    status VARCHAR(20) DEFAULT 'PENDING',    -- Completed, Paid, Delivered, Cancelled
     voucher_code VARCHAR(30),
     created_date DATETIME    DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user (user_id)

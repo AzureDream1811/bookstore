@@ -1,10 +1,16 @@
 package com.bookstore.view;
 
+import com.bookstore.model.ReportFilter;
+import com.bookstore.model.RevenueReportData;
+import com.bookstore.model.RevenueResult;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class ConsoleView {
     private final Scanner scanner = new Scanner(System.in);
-
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     public void print(String msg) { System.out.println(msg); }
 
     public void printError(String msg) { System.out.println("[LOI] " + msg); }
@@ -33,36 +39,61 @@ public class ConsoleView {
             }
         }
     }
-//    public LocalDate readDate(String prompt) {
-//        while (true) {
-//            try {
-//                System.out.print(prompt);
-//                return LocalDate.parse(scanner.nextLine().trim(), formatter);
-//            } catch (java.time.format.DateTimeParseException e) {
-//                printError("Vui lòng nhập đúng định dạng dd/MM/yyyy (VD: 01/10/2025)");
-//            }
-//        }
-//    }
-//    public ReportFilter getRevenueFilterInput() {
-//        System.out.println("=== BỘ LỌC BÁO CÁO DOANH THU ===");
-//        LocalDate fromDate = readDate("Nhập ngày bắt đầu (dd/MM/yyyy): ");
-//        LocalDate toDate = readDate("Nhập ngày kết thúc (dd/MM/yyyy): ");
-//        return new ReportFilter(fromDate, toDate);
-//    }
-//
-//    public void displayRevenueResult(RevenueResult result) {
-//        System.out.println("\n=== KẾT QUẢ BÁO CÁO DOANH THU THUẦN ===");
-//        System.out.println("Tổng tiền sản phẩm : " + result.getTotalProductAmount());
-//        System.out.println("- Giảm giá         : " + result.getTotalDiscount());
-//        System.out.println("+ Phí vận chuyển   : " + result.getTotalShippingFee());
-//        System.out.println("- Hoàn tiền        : " + result.getTotalRefund());
-//        System.out.println("-------------------------------------");
-//        System.out.println("DOANH THU THUẦN    : " + result.getNetRevenue());
-//    }
+    public LocalDate readDate(String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                return LocalDate.parse(scanner.nextLine().trim(), formatter);
+            } catch (java.time.format.DateTimeParseException e) {
+                printError("Vui lòng nhập đúng định dạng dd/MM/yyyy (VD: 01/10/2025)");
+            }
+        }
+    }
+    public ReportFilter getRevenueFilterInput() {
+        System.out.println("=== BỘ LỌC BÁO CÁO DOANH THU ===");
+        LocalDate fromDate = readDate("Nhập ngày bắt đầu (dd/MM/yyyy): ");
+        LocalDate toDate = readDate("Nhập ngày kết thúc (dd/MM/yyyy): ");
+        return new ReportFilter(fromDate, toDate);
+    }
+
+    public void displayRevenueResult(RevenueReportData reportData) {
+        java.util.List<RevenueResult> dailyResults = reportData.getDailyResults();
+        RevenueResult totalResult = reportData.getTotalResult();
+
+        System.out.println("\n==================================== BẢNG CHI TIẾT DOANH THU THEO NGÀY ====================================");
+        // Định dạng tiêu đề cột cho thẳng hàng
+        String formatHeader = "| %-12s | %-18s | %-15s | %-18s | %-15s | %-20s |\n";
+        String formatRow    = "| %-12s | %-18.1f | %-15.1f | %-18.1f | %-15.1f | %-20.1f |\n";
+
+        System.out.printf(formatHeader, "Ngày", "Tiền sản phẩm", "Giảm giá", "Phí vận chuyển", "Hoàn tiền", "Doanh thu thuần");
+        System.out.println("-----------------------------------------------------------------------------------------------------------");
+
+        for (RevenueResult row : dailyResults) {
+            System.out.printf(formatRow,
+                    row.getDate().format(formatter),
+                    row.getTotalProductAmount(),
+                    row.getTotalDiscount(),
+                    row.getTotalShippingFee(),
+                    row.getTotalRefund(),
+                    row.getNetRevenue());
+        }
+        System.out.println("-----------------------------------------------------------------------------------------------------------");
+        System.out.println("\n=== KẾT QUẢ BÁO CÁO DOANH THU THUẦN ===");
+        System.out.println("Tổng tiền sản phẩm : " + totalResult.getTotalProductAmount());
+        System.out.println("- Giảm giá         : " + totalResult.getTotalDiscount());
+        System.out.println("+ Phí vận chuyển   : " + totalResult.getTotalShippingFee());
+        System.out.println("- Hoàn tiền        : " + totalResult.getTotalRefund());
+        System.out.println("-------------------------------------");
+        System.out.println("DOANH THU THUẦN    : " + totalResult.getNetRevenue());
+    }
 
     public void displayError(String message) {
         System.out.println("[LỖI] " + message);
     }
+    // ==========================================
+    // CÁC HÀM HIỂN THỊ MENU ĐIỀU HƯỚNG
+    // ==========================================
+
     public int showMainMenu(String userStatus) {
         print("");
         print("=== HE THONG QUAN LY NHA SACH ===");
@@ -92,6 +123,7 @@ public class ConsoleView {
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
+
     public int showInventoryMenu() {
         print("");
         print("--- QUAN LY KHO HANG ---");
@@ -100,6 +132,7 @@ public class ConsoleView {
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
+
     public int showDiscountMenu() {
         print("");
         print("--- QUAN LY GIAM GIA ---");
@@ -111,6 +144,7 @@ public class ConsoleView {
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
+
     public int showReportMenu() {
         print("");
         print("--- THONG KE BAO CAO ---");
@@ -122,6 +156,7 @@ public class ConsoleView {
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
+
     public int showUserMenu() {
         print("");
         print("--- QUAN LY TAI KHOAN NGUOI DUNG ---");
@@ -130,6 +165,7 @@ public class ConsoleView {
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
+
     public int showCartMenu() {
         print("");
         print("--- GIO HANG / HOA DON ---");
@@ -140,6 +176,7 @@ public class ConsoleView {
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
+
     public int showRentalMenu() {
         print("");
         print("--- QUAN LY THUE SACH ---");
@@ -149,5 +186,12 @@ public class ConsoleView {
         print("4. Canh bao qua han tra sach");
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
+    }
+    public int showPostReportMenu() {
+        print("\n--- THAO TÁC TIẾP THEO ---");
+        print("1. Xuất file báo cáo");
+        print("2. Xuất biểu đồ");
+        print("0. Về trang chủ (Quay lại)");
+        return readInt("Chọn chức năng: ");
     }
 }
