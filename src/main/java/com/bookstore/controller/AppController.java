@@ -165,7 +165,7 @@ public class AppController {
         while (!back) {
             int choice = view.showReportMenu();
             switch (choice) {
-                case 1 -> reportController.handleRevenueReportRequest();
+                case 1 -> reportController.handleRevenueReportRequest(currentUser);
                 case 2 -> reportController.handleBestSellerReportRequest();
                 // TODO (Bạn của bạn): 7. Bổ sung các báo cáo khác ở đây nếu có
                 case 0 -> back = true;
