@@ -76,15 +76,25 @@ public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCod
     }
 }
 
-    public double applyVoucher(String code, double orderTotal) throws SQLException {
+   public double applyVoucher(String code, double orderTotal) throws SQLException {
         Voucher voucher = voucherDAO.findByCode(code);
-        if (voucher == null || !voucher.isValid()) {
-            throw new IllegalArgumentException("Voucher khong hop le hoac da het han/da dung");
-        }
+    
+        // Kiểm tra tồn tại
+        if (voucher == null) {
+            throw new IllegalArgumentException("Mã voucher không tồn tại");
+    }
+
+        // Kiểm tra hết hạn
+        if (!voucher.isValid()) {
+            throw new IllegalArgumentException("Voucher đã hết hạn hoặc đã được sử dụng");
+    }
+
+        // Kiểm tra giá trị đơn tối thiểu
         if (orderTotal < voucher.getMinOrderAmount()) {
-            throw new IllegalStateException("Don hang chua du dieu kien ap dung voucher (toi thieu "
-                    + voucher.getMinOrderAmount() + ")");
-        }
+            throw new IllegalStateException("Đơn hàng chưa đủ điều kiện áp dụng voucher (tối thiểu " 
+                + voucher.getMinOrderAmount() + " VND)");
+    }
+
         return voucher.getDiscountValue();
     }
 
