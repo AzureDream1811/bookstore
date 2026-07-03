@@ -67,7 +67,7 @@ public class AppController {
     private boolean handleCustomerMenu() {
         String status = "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")";
         switch (view.showCustomerMenu(status)) {
-            case 1 -> handleBookMenuCustomer();
+            case 1 -> handleBookMenuCustomer(currentUser);
             case 2 -> currentUser = cartController.open(currentUser);
             case 3 -> currentUser = salesController.open(currentUser);
             case 0 -> {
@@ -82,7 +82,7 @@ public class AppController {
     private boolean handleStaffMenu() {
         String status = "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")";
         switch (view.showStaffMenu(status)) {
-            case 1 -> handleBookMenu();
+            case 1 -> handleBookMenu(currentUser);
             case 2 -> handleInventoryMenu();
             case 3 -> discountController.open();
             case 4 -> currentUser = cartController.open(currentUser);
@@ -98,12 +98,12 @@ public class AppController {
         return true;
     }
     //menu search cua khach
-    private void handleBookMenuCustomer() {
+    private void handleBookMenuCustomer(User user) {
         boolean back = false;
         while (!back) {
             switch (view.showBookMenuCustomer()) {
                 case 1 -> bookController.listAll();
-                case 2 -> bookController.search();
+                case 2 -> bookController.search(user, cartController);
                 case 0 -> back = true;
                 default -> view.printError("Lua chon khong hop le");
             }
@@ -114,13 +114,13 @@ public class AppController {
     // CÁC HÀM XỬ LÝ MENU CON ( SẼ HOÀN THIỆN LOGIC Ở ĐÂY)
     // =========================================================================
 
-    private void handleBookMenu() {
+    private void handleBookMenu(User user) {
         bookController.listAll();
         boolean back = false;
         while (!back) {
             switch (view.showBookMenu()) {
                 case 1 -> bookController.listAll();
-                case 2 -> bookController.search();
+                case 2 -> bookController.search(user, cartController);
                 case 3 -> bookController.addBook();
                 case 4 -> bookController.editBook();
                 case 5 -> bookController.hideBook();

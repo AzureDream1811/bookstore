@@ -271,4 +271,17 @@ public class ConsoleView {
         print("===== TRA SACH THANH CONG =====");
         print("Phi tre han : " + lateFee);
     }
+
+    public void showBookList(com.bookstore.model.Page<com.bookstore.model.Book> bookPage) {
+        print("");
+        print("--- DANH SACH SACH ---");
+        print(String.format("Trang %d / %d", bookPage.getPageNumber(), bookPage.getTotalPages()));
+        for (com.bookstore.model.Book book : bookPage.getContent()) {
+            print(book.toString());
+        }
+    }
+
+    public String getPaginationInput() {
+        return readLine("Chon ([N]ext/[P]revious/[E]xit): ");
+    }
 }
