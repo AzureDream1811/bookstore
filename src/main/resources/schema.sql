@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS user
     full_name     VARCHAR(100) NOT NULL,
     email         VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role          VARCHAR(20)  NOT NULL DEFAULT 'CUSTOMER'
+    role          VARCHAR(20)  NOT NULL DEFAULT 'CUSTOMER',
+    verify_code   VARCHAR(6),
+    otp_expires_at DATETIME,
+    verified      BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS member

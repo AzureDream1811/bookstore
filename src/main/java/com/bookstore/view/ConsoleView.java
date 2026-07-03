@@ -113,7 +113,7 @@ public class ConsoleView {
         print("1. Quan ly sach");
         print("2. Gio hang / hoa don");
         print("3. Quan ly ban hang");
-        print("0. Thoat");
+        print("0. Dang xuat");
         return readInt("Chon chuc nang: ");
     }
 
@@ -129,7 +129,7 @@ public class ConsoleView {
         print("5. Thong ke bao cao");
         print("6. Quan ly tai khoan nguoi dung");
         print("7. Quan ly ban hang");
-        print("0. Thoat");
+        print("0. Dang xuat");
         return readInt("Chon chuc nang: ");
     }
 
