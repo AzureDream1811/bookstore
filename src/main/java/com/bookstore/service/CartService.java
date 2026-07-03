@@ -17,47 +17,64 @@ public class CartService {
     private final BookDAO bookDAO = new BookDAO();
     private final VoucherDAO voucherDAO = new VoucherDAO();
 
-    public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCode) throws SQLException {
-        if (cartItems.isEmpty()) throw new IllegalArgumentException("Gio hang trong");
-        double total = 0;
-        for (OrderDetail item : cartItems) {
-            Book book = bookDAO.findById(item.getBookId());
-            if (book == null || !book.isAvailable() || book.getStockQuantity() < item.getQuantity()) {
-                throw new IllegalStateException("Sach id=" + item.getBookId() + " khong du de ban");
-            }
-            item.setPrice(book.getPrice());
-            total += item.subTotal();
-        }
+    // Trong CartService.java - thay thế hoặc cập nhật phần checkout và applyVoucher
+public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCode) throws SQLException {
+    if (cartItems.isEmpty()) throw new IllegalArgumentException("Gio hang trong");
 
-        double discount = 0;
-        if (voucherCode != null && !voucherCode.isBlank()) {
-            discount = applyVoucher(voucherCode, total);
+    double totalProductAmount = 0;
+    for (OrderDetail item : cartItems) {
+        Book book = bookDAO.findById(item.getBookId());
+        if (book == null || !book.isAvailable() || book.getStockQuantity() < item.getQuantity()) {
+            throw new IllegalStateException("Sach id=" + item.getBookId() + " khong du de ban");
         }
-        double finalAmount = total - discount;
+        item.setPrice(book.getPrice());
+        totalProductAmount += item.subTotal();
+    }
 
-        try (Connection conn = com.bookstore.util.DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                Order order = new Order(0, userId, finalAmount, "PENDING", voucherCode);
-                int orderId = orderDAO.createOrder(conn, order);
-                order.setOrderId(orderId);
-                for (OrderDetail item : cartItems) {
-                    item.setOrderId(orderId);
-                    orderDAO.addDetail(conn, item);
-                    bookDAO.updateStock(conn, item.getBookId(), -item.getQuantity());
-                }
-                if (voucherCode != null && !voucherCode.isBlank()) {
-                    voucherDAO.markUsed(conn, voucherCode);
-                }
-                order.setDetails(cartItems);
-                conn.commit();
-                return order;
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            }
+    double discount = 0;
+    String appliedVoucher = null;
+
+    // ========== USE CASE ÁP DỤNG VOUCHER ==========
+    if (voucherCode != null && !voucherCode.isBlank()) {
+        try {
+            discount = applyVoucher(voucherCode, totalProductAmount);
+            appliedVoucher = voucherCode;
+            view.print("Áp dụng voucher " + voucherCode + " thành công. Giảm: " + discount + " VND"); // giả sử có view
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // Exception flow: Thông báo lỗi cho khách hàng
+            throw new IllegalArgumentException("Voucher không hợp lệ: " + e.getMessage());
         }
     }
+
+    double finalAmount = totalProductAmount - discount;
+
+    // Transaction
+    try (Connection conn = DBConnection.getConnection()) {
+        conn.setAutoCommit(false);
+        try {
+            Order order = new Order(0, userId, finalAmount, "PENDING", appliedVoucher);
+            int orderId = orderDAO.createOrder(conn, order);
+            order.setOrderId(orderId);
+
+            for (OrderDetail item : cartItems) {
+                item.setOrderId(orderId);
+                orderDAO.addDetail(conn, item);
+                bookDAO.updateStock(conn, item.getBookId(), -item.getQuantity());
+            }
+
+            if (appliedVoucher != null) {
+                voucherDAO.markUsed(conn, appliedVoucher);
+            }
+
+            order.setDetails(cartItems);
+            conn.commit();
+            return order;
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        }
+    }
+}
 
     public double applyVoucher(String code, double orderTotal) throws SQLException {
         Voucher voucher = voucherDAO.findByCode(code);
