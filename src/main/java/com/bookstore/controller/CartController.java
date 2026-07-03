@@ -121,4 +121,17 @@ public class CartController {
             throw new IllegalArgumentException(message);
         }
     }
+
+    public void addToCart(User currentUser, OrderDetail item) {
+        if (currentUser == null) {
+            view.printError("Can dang nhap truoc khi them vao gio hang");
+            return;
+        }
+        try {
+            Order order = cartService.checkout(currentUser.getUserId(), List.of(item), null);
+            view.print("Da them vao gio hang va tao don hang moi, orderId=" + order.getOrderId() + ", tong tien=" + order.getTotalAmount());
+        } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
+            view.printError(e.getMessage());
+        }
+    }
 }

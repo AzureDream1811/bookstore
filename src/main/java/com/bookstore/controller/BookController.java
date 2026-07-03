@@ -14,25 +14,62 @@ public class BookController {
     public BookController(ConsoleView view) { this.view = view; }
 
     public void listAll() {
-        try {
-            List<Book> books = bookService.listAll();
-            if (books.isEmpty()) { view.print("Chua co sach nao"); return; }
-            books.forEach(b -> view.print(b.toString()));
-        } catch (SQLException e) {
-            view.printError("Loi he thong: " + e.getMessage());
+        int page = 1;
+        final int pageSize = 5; // Show 5 books per page
+        com.bookstore.model.Page<Book> bookPage;
+
+        while (true) {
+            try {
+                bookPage = bookService.listPage(page, pageSize);
+                if (bookPage.getContent().isEmpty()) {
+                    view.print("Chua co sach nao");
+                    return;
+                }
+                view.showBookList(bookPage);
+
+                String choice = view.getPaginationInput();
+                if ("N".equalsIgnoreCase(choice) && bookPage.hasNext()) {
+                    page++;
+                } else if ("P".equalsIgnoreCase(choice) && bookPage.hasPrevious()) {
+                    page--;
+                } else if ("E".equalsIgnoreCase(choice)) {
+                    break;
+                } else {
+                    view.printError("Lua chon khong hop le.");
+                }
+            } catch (SQLException e) {
+                view.printError("Loi he thong: " + e.getMessage());
+                break;
+            }
         }
     }
 
-    public void search() {
+    public void search(com.bookstore.model.User user, CartController cartController) {
         String keyword = view.readLine("Tu khoa (ten/tac gia/the loai): ");
         try {
             List<Book> books = bookService.search(keyword);
-            if (books.isEmpty()) { view.print("Khong tim thay sach phu hop"); return; }
+            if (books.isEmpty()) {
+                view.print("Khong tim thay sach phu hop");
+                return;
+            }
             books.forEach(b -> view.print(b.toString()));
+
             List<Book> recommendations = bookService.recommendBooks(keyword, 5);
             if (!recommendations.isEmpty()) {
                 view.print("--- Goi y sach lien quan ---");
                 recommendations.forEach(b -> view.print(b.toString()));
+                String choice = view.readLine("Ban co muon them sach goi y vao gio hang? (Y/N): ");
+                if ("Y".equalsIgnoreCase(choice)) {
+                    int bookId = view.readInt("Nhap ID sach can them: ");
+                    // Check if the selected book is in the recommendations
+                    boolean found = recommendations.stream().anyMatch(b -> b.getBookId() == bookId);
+                    if (found) {
+                        int quantity = view.readInt("So luong: ");
+                        cartController.addToCart(user, new com.bookstore.model.OrderDetail(0, bookId, quantity, 0));
+                    } else {
+                        view.printError("ID sach khong hop le.");
+                    }
+                }
             }
         } catch (SQLException e) {
             view.printError(e.getMessage());
