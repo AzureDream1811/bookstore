@@ -94,21 +94,52 @@ public class ConsoleView {
     // CÁC HÀM HIỂN THỊ MENU ĐIỀU HƯỚNG
     // ==========================================
 
-    public int showMainMenu(String userStatus) {
+    /** Menu khi CHUA dang nhap */
+    public int showGuestMenu() {
+        print("");
+        print("=== HE THONG QUAN LY NHA SACH ===");
+        print("Trang thai: chua dang nhap");
+        print("1. Dang nhap");
+        print("2. Dang ky");
+        print("0. Thoat");
+        return readInt("Chon chuc nang: ");
+    }
+
+    /** Menu danh cho role CUSTOMER sau khi dang nhap */
+    public int showCustomerMenu(String userStatus) {
         print("");
         print("=== HE THONG QUAN LY NHA SACH ===");
         print(userStatus);
-        print("1. Dang nhap");
-        print("2. Dang ky");
-        print("3. Quan ly sach");
-        print("4. Quan ly kho hang");
-        print("5. Quan ly giam gia");
-        print("6. Quan ly gio hang / hoa don");
-        print("7. Quan ly thue sach");
-        print("8. Thong ke bao cao");
-        print("9. Quan ly tai khoan nguoi dung");
-        print("10. Quan ly ban hang");
+        print("1. Quan ly sach");
+        print("2. Gio hang / hoa don");
+        print("3. Quan ly ban hang");
         print("0. Thoat");
+        return readInt("Chon chuc nang: ");
+    }
+
+    /** Menu danh cho role STAFF / MANAGER sau khi dang nhap */
+    public int showStaffMenu(String userStatus) {
+        print("");
+        print("=== HE THONG QUAN LY NHA SACH ===");
+        print(userStatus);
+        print("1. Quan ly sach");
+        print("2. Quan ly kho hang");
+        print("3. Quan ly giam gia");
+        print("4. Gio hang / hoa don");
+        print("5. Thong ke bao cao");
+        print("6. Quan ly tai khoan nguoi dung");
+        print("7. Quan ly ban hang");
+        print("0. Thoat");
+        return readInt("Chon chuc nang: ");
+    }
+
+    /** Menu sach rut gon danh cho khach hang: chi xem + tim kiem */
+    public int showBookMenuCustomer() {
+        print("");
+        print("--- QUAN LY SACH ---");
+        print("1. Danh sach sach");
+        print("2. Tim kiem va goi y sach");
+        print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
 
@@ -199,8 +230,45 @@ public class ConsoleView {
         print("\n--- DANH SÁCH LOẠI BIỂU ĐỒ HỖ TRỢ ---");
         print("1. Biểu đồ cột (Bar Chart) - So sánh theo ngày");
         print("2. Biểu đồ tròn (Pie Chart) - Tỷ lệ dòng tiền tổng cộng");
-        print("3. Biểu đồ đường (Line Chart) - Biến động xu hướng");
+        print("3. Biểu đồ đường (Line Chart) - Biến động xu hướn1g");
         print("0. Hủy bỏ quay lại");
         return readInt("Chọn loại biểu đồ bạn muốn vẽ: ");
+    }
+    // ==========================================
+    // THUÊ SÁCH
+    // ==========================================
+
+    public void showRentalInfo() {
+        print("");
+        print("===== THUE SACH =====");
+    }
+
+    public int inputBookId() {
+        return readInt("Nhap ma sach: ");
+    }
+
+    public int inputRentalDays() {
+        return readInt("Nhap so ngay thue (1-30): ");
+    }
+
+    public int inputRentalId() {
+        return readInt("Nhap ma phieu thue: ");
+    }
+
+    public String inputKeyword() {
+        return readLine("Nhap tu khoa tim kiem: ");
+    }
+
+    public void showRentalSuccess(int rentalId, double rentalFee) {
+        print("");
+        print("===== THUE SACH THANH CONG =====");
+        print("Ma phieu thue : " + rentalId);
+        print("Tong tien thue: " + rentalFee);
+    }
+
+    public void showReturnSuccess(double lateFee) {
+        print("");
+        print("===== TRA SACH THANH CONG =====");
+        print("Phi tre han : " + lateFee);
     }
 }

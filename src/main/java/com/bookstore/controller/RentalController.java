@@ -1,5 +1,6 @@
 package com.bookstore.controller;
 
+import com.bookstore.model.Book;
 import com.bookstore.model.Rental;
 import com.bookstore.model.User;
 import com.bookstore.service.RentalService;
@@ -33,70 +34,125 @@ public class RentalController {
     }
 
     public User rentBook(User currentUser) {
+
         if (currentUser == null) {
-            view.printError("Can dang nhap truoc khi thue sach");
+            view.printError("Ban can dang nhap truoc.");
             return null;
         }
-        int bookId = view.readInt("Nhap bookId: ");
-        int days = view.readInt("So ngay thue: ");
+
         try {
-            if (bookId < 1) {
-                throw new IllegalArgumentException("BookId khong hop le");
+
+            // Hiển thị danh sách sách trước
+            List<Book> books = rentalService.getAvailableBooks();
+
+            if (books.isEmpty()) {
+                view.print("Khong co sach nao co the thue.");
+                return currentUser;
             }
-            Rental rental = rentalService.rentBook(currentUser.getUserId(), bookId, days);
-            view.print("Thue sach thanh cong, rentalId=" + rental.getRentalId());
-        } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
+
+            view.showRentalInfo();
+            view.print("===== DANH SACH SACH CO THE THUE =====");
+
+            for (Book b : books) {
+                view.print(String.format(
+                        "[%d] %s | Tac gia: %s | Thue/ngay: %.0f | Con: %d",
+                        b.getBookId(),
+                        b.getTitle(),
+                        b.getAuthor(),
+                        b.getRentPricePerDay(),
+                        b.getStockQuantity()
+                ));
+            }
+
+            // Sau đó mới nhập
+            int bookId = view.inputBookId();
+            int days = view.inputRentalDays();
+
+            Rental rental = rentalService.rentBook(
+                    currentUser.getUserId(),
+                    bookId,
+                    days
+            );
+
+            view.showRentalSuccess(
+                    rental.getRentalId(),
+                    rental.getRentalFee()
+            );
+
+        } catch (Exception e) {
             view.printError(e.getMessage());
         }
+
         return currentUser;
     }
 
     public void returnBook() {
-        int rentalId = view.readInt("Nhap rentalId: ");
+
+        int rentalId = view.inputRentalId();
+
         try {
-            if (rentalId < 1) {
-                throw new IllegalArgumentException("RentalId khong hop le");
-            }
+
             double lateFee = rentalService.returnBook(rentalId);
-            view.print(String.format("Tra sach thanh cong. Phi tre han: %.0f", lateFee));
-        } catch (IllegalArgumentException | SQLException e) {
+
+            view.showReturnSuccess(lateFee);
+
+        } catch (Exception e) {
             view.printError(e.getMessage());
         }
     }
 
     public void searchRentals() {
-        String keyword = view.readLine("Tu khoa tim kiem phieu thue: ");
+
+        String keyword = view.inputKeyword();
+
         try {
-            requireText(keyword, "Tu khoa tim kiem khong duoc de trong");
-            List<Rental> rentals = rentalService.search(keyword);
-            if (rentals.isEmpty()) {
-                view.print("Khong tim thay phieu thue");
+
+            requireText(keyword, "Tu khoa khong duoc de trong.");
+
+            List<Rental> list = rentalService.search(keyword);
+
+            if (list.isEmpty()) {
+                view.print("Khong tim thay phieu thue.");
                 return;
             }
-            for (Rental rental : rentals) {
-                view.print("[" + rental.getRentalId() + "] user=" + rental.getUserId()
-                        + ", book=" + rental.getBookId()
-                        + ", ngay thue=" + rental.getRentDate()
-                        + ", so ngay=" + rental.getDays()
-                        + ", trang thai=" + rental.getStatus());
+
+            for (Rental r : list) {
+
+                view.print("--------------------------------");
+
+                view.print("Ma phieu : " + r.getRentalId());
+                view.print("User     : " + r.getUserId());
+                view.print("Book     : " + r.getBookId());
+                view.print("Ngay thue: " + r.getRentDate());
+                view.print("Han tra  : " + r.getDueDate());
+                view.print("So ngay  : " + r.getDays());
+                view.print("Tien thue: " + r.getRentalFee());
+                view.print("Tre han  : " + r.getLateFee());
+                view.print("Trang thai: " + r.getStatus());
+
             }
-        } catch (SQLException | IllegalArgumentException e) {
+
+        } catch (Exception e) {
             view.printError(e.getMessage());
         }
+
     }
 
     public void showOverdueRentals() {
         try {
-            List<Rental> rentals = rentalService.listOverdueRentals();
-            if (rentals.isEmpty()) {
-                view.print("Khong co phieu thue qua han");
+            List<Rental> list = rentalService.listOverdueRentals();
+            if (list.isEmpty()) {
+                view.print("Khong co phieu thue qua han.");
                 return;
             }
-            for (Rental rental : rentals) {
-                view.print("[" + rental.getRentalId() + "] user=" + rental.getUserId()
-                        + ", book=" + rental.getBookId()
-                        + ", ngay thue=" + rental.getRentDate()
-                        + ", so ngay=" + rental.getDays());
+            for (Rental r : list) {
+                view.print("--------------------------------");
+                view.print("Rental : " + r.getRentalId());
+                view.print("Book   : " + r.getBookId());
+                view.print("User   : " + r.getUserId());
+                view.print("Ngay thue : " + r.getRentDate());
+                view.print("Han tra   : " + r.getDueDate());
+
             }
         } catch (SQLException e) {
             view.printError(e.getMessage());
