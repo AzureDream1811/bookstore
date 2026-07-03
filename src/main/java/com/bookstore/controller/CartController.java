@@ -38,24 +38,27 @@ public class CartController {
         if (currentUser == null) {
             view.printError("Can dang nhap truoc khi dat hang");
             return null;
-        }
-        List<OrderDetail> items = collectOrderItems();
+    }
+
+    List<OrderDetail> items = collectOrderItems();
         if (items.isEmpty()) {
             view.printError("Gio hang trong");
             return currentUser;
-        }
-        String voucherCode = view.readLine("Voucher (bo trong neu khong co): ");
+    }
+
+    String voucherCode = view.readLine("Nhap ma Voucher (bo trong neu khong co): ");
         if (voucherCode.isBlank()) {
             voucherCode = null;
-        }
+    }
+
         try {
             Order order = cartService.checkout(currentUser.getUserId(), items, voucherCode);
-            view.print("Dat hang thanh cong, orderId=" + order.getOrderId() + ", tong tien=" + order.getTotalAmount());
+            view.print("Dat hang thanh cong, orderId=" + order.getOrderId()  + ", tong tien=" + order.getTotalAmount());
         } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
-            view.printError(e.getMessage());
+            view.printError(e.getMessage());   // Hiển thị lỗi rõ ràng theo use case
         }
-        return currentUser;
-    }
+    return currentUser;
+}
 
     public void confirmPayment() {
         int orderId = view.readInt("Nhap orderId: ");
