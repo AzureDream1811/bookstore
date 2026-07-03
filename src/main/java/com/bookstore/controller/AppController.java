@@ -110,7 +110,7 @@ public class AppController {
     private void handleCartMenu() {
         currentUser = cartController.open(currentUser);
     }
-}
+
 
     private void handleReportMenu() {
         boolean back = false;
@@ -124,5 +124,6 @@ public class AppController {
             }
         }
     }
+}
 
 
