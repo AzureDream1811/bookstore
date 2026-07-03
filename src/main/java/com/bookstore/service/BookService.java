@@ -65,7 +65,7 @@ public class BookService {
 
     public Book addBook(String title, String author, String genre, double price,
                          double rentPrice, int stock) throws SQLException {
-        validate(title, price, stock);
+        validate(title, author, genre, price, rentPrice, stock);
         Book book = new Book(0, title, author, genre, price, rentPrice, stock, false, "ACTIVE");
         int id = bookDAO.insert(book);
         book.setBookId(id);
@@ -73,7 +73,8 @@ public class BookService {
     }
 
     public void updateBook(Book book) throws SQLException {
-        validate(book.getTitle(), book.getPrice(), book.getStockQuantity());
+        validate(book.getTitle(), book.getAuthor(), book.getGenre(), book.getPrice(),
+                book.getRentPricePerDay(), book.getStockQuantity());
         bookDAO.update(book);
     }
 
@@ -85,9 +86,14 @@ public class BookService {
         bookDAO.markFaulty(bookId, faulty);
     }
 
-    private void validate(String title, double price, int stock) {
-        if (title == null || title.isBlank()) throw new IllegalArgumentException("Thieu ten sach");
-        if (price < 0) throw new IllegalArgumentException("Gia khong hop le");
-        if (stock < 0) throw new IllegalArgumentException("So luong khong hop le");
+    private void validate(String title, String author, String genre, double price, double rentPrice, int stock) {
+        if (title == null || title.isBlank()
+                || author == null || author.isBlank()
+                || genre == null || genre.isBlank()) {
+            throw new IllegalArgumentException("Vui long nhap day du thong tin");
+        }
+        if (price < 0 || rentPrice < 0 || stock < 0) {
+            throw new IllegalArgumentException("Gia hoac so luong khong hop le");
+        }
     }
 }
