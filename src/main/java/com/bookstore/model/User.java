@@ -6,6 +6,8 @@ public class User {
     private String email;
     private String passwordHash;
     private String role; // CUSTOMER, STAFF, MANAGER
+    private String verifyCode;
+    private boolean verified;
 
     public User() {}
 
@@ -27,4 +29,8 @@ public class User {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public String getVerifyCode() {return verifyCode;}
+    public void setVerifyCode(String verifyCode) {this.verifyCode = verifyCode;}
+    public boolean isVerified() {return verified;}
+    public void setVerified(boolean verified) {this.verified = verified;}
 }
