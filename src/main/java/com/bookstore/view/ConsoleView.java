@@ -4,10 +4,13 @@ import com.bookstore.model.Rental;
 import com.bookstore.model.ReportFilter;
 import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
+import com.bookstore.model.BestSellerFilter;
+import com.bookstore.model.BestSellerItem;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
+import java.util.List;
 
 public class ConsoleView {
     private final Scanner scanner = new Scanner(System.in);
@@ -98,6 +101,51 @@ public class ConsoleView {
     }
     public void displayError(String message) {
         System.out.println("[LỖI] " + message);
+    }
+    public BestSellerFilter getBestSellerFilterInput() {
+        System.out.println("=== BỘ LỌC SẢN PHẨM BÁN CHẠY ===");
+
+        print("1. Tất cả");
+        print("2. Bán");
+        print("3. Thuê");
+        int typeChoice = readInt("Chọn loại (1-3): ");
+        BestSellerFilter.Type type = switch (typeChoice) {
+            case 2 -> BestSellerFilter.Type.SOLD;
+            case 3 -> BestSellerFilter.Type.RENTED;
+            default -> BestSellerFilter.Type.ALL;
+        };
+
+        String fromStr = readLine("Nhập ngày bắt đầu (dd/MM/yyyy ");
+        String toStr = readLine("Nhập ngày kết thúc (dd/MM/yyyy ");
+        java.time.LocalDate fromDate = fromStr.isBlank() ? null : java.time.LocalDate.parse(fromStr, formatter);
+        java.time.LocalDate toDate = toStr.isBlank() ? null : java.time.LocalDate.parse(toStr, formatter);
+
+        print("1. Tăng dần");
+        print("2. Giảm dần");
+        int sortChoice = readInt("Chọn thứ tự sắp xếp (1-2): ");
+        BestSellerFilter.SortOrder sortOrder = sortChoice == 1
+                ? BestSellerFilter.SortOrder.ASC
+                : BestSellerFilter.SortOrder.DESC;
+
+        return new BestSellerFilter(fromDate, toDate, type, sortOrder);
+    }
+
+    public void displayBestSellerResult(List<BestSellerItem> items, BestSellerFilter.Type type) {
+        System.out.println("\n=== TOP SẢN PHẨM BÁN CHẠY ===");
+        int rank = 1;
+        for (BestSellerItem item : items) {
+            StringBuilder line = new StringBuilder();
+            line.append(rank++).append(". ").append(item.getTitle());
+            if (type == BestSellerFilter.Type.SOLD) {
+                line.append(" - ban: ").append(item.getSoldQty()).append(" cuon");
+            } else if (type == BestSellerFilter.Type.RENTED) {
+                line.append(" - thue: ").append(item.getRentedQty()).append(" cuon");
+            } else {
+                line.append(" - ban: ").append(item.getSoldQty()).append(" cuon")
+                        .append(" - thue: ").append(item.getRentedQty()).append(" cuon");
+            }
+            System.out.println(line);
+        }
     }
     // ==========================================
     // CÁC HÀM HIỂN THỊ MENU ĐIỀU HƯỚNG

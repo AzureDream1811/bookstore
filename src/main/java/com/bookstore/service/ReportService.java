@@ -7,6 +7,12 @@ import com.bookstore.model.Book;
 import com.bookstore.model.ReportFilter;
 import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
+import com.bookstore.model.BestSellerFilter;
+import com.bookstore.model.BestSellerItem;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Map;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -76,7 +82,7 @@ public class ReportService {
     public RevenueReportData generateRevenueReport(ReportFilter filter) throws Exception {
         // Exception Flow 5.1: Kiểm tra dữ liệu đầu vào
         if (filter.getFromDate().isAfter(filter.getToDate())) {
-            throw new IllegalArgumentException("Khoảng thời gian không hợp lệ (From date > To date)");
+            throw new IllegalArgumentException("Khoang thoi gian khng hop le");
         }
 
         try {
@@ -85,7 +91,7 @@ public class ReportService {
 
             // Exception Flow 6.2: Không có dữ liệu
             if (dailyResults == null || dailyResults.isEmpty()) {
-                throw new Exception("Không có dữ liệu phù hợp với điều kiện lọc.");
+                throw new Exception("Khong co du lieu phu hop.");
             }
 
             // Tính toán tổng số liệu từ danh sách theo ngày
@@ -107,7 +113,7 @@ public class ReportService {
 
             // Đề phòng trường hợp có dòng dữ liệu nhưng doanh thu bằng 0
             if (totalResult.getNetRevenue() == 0 && totalAmount == 0) {
-                throw new Exception("Không có dữ liệu doanh thu phù hợp với điều kiện lọc.");
+                throw new Exception("Khong co du lieu phu hop.");
             }
 
             // Trả về đối tượng chứa cả danh sách ngày và tổng cộng
@@ -115,6 +121,62 @@ public class ReportService {
 
         } catch (SQLException e) {
             // Exception Flow 2.1 & 6.1: Lỗi CSDL
+            throw new Exception("Lỗi kết nối máy chủ hoặc truy vấn CSDL, vui lòng thử lại sau.", e);
+        }
+    }
+    public List<BestSellerItem> generateBestSellerReport(BestSellerFilter filter) throws Exception {
+        LocalDate toDate = filter.getToDate() != null ? filter.getToDate() : LocalDate.now();
+        LocalDate fromDate = filter.getFromDate() != null ? filter.getFromDate() : toDate.minusDays(30);
+
+        if (fromDate.isAfter(toDate)) {
+            throw new IllegalArgumentException("Khoang thoi gian khong hop le");
+        }
+
+        try {
+            Map<Integer, BestSellerItem> merged = new HashMap<>();
+
+            List<Object[]> soldRows = reportDAO.getSoldQuantityByBook(fromDate, toDate);
+            for (Object[] row : soldRows) {
+                int bookId = (int) row[0];
+                int qty = (int) row[1];
+                Book book = bookDAO.findById(bookId);
+                String title = book != null ? book.getTitle() : "(Không rõ)";
+                merged.put(bookId, new BestSellerItem(bookId, title, qty, 0));
+            }
+
+            List<Object[]> rentedRows = reportDAO.getRentedQuantityByBook(fromDate, toDate);
+            for (Object[] row : rentedRows) {
+                int bookId = (int) row[0];
+                int qty = (int) row[1];
+                BestSellerItem item = merged.get(bookId);
+                if (item == null) {
+                    Book book = bookDAO.findById(bookId);
+                    String title = book != null ? book.getTitle() : "(Không rõ)";
+                    merged.put(bookId, new BestSellerItem(bookId, title, 0, qty));
+                } else {
+                    item.setRentedQty(qty);
+                }
+            }
+
+            if (merged.isEmpty()) {
+                throw new Exception("Khong co du lieu phu hop.");
+            }
+
+            List<BestSellerItem> list = new ArrayList<>(merged.values());
+
+            Comparator<BestSellerItem> comparator = switch (filter.getType()) {
+                case SOLD -> Comparator.comparingInt(BestSellerItem::getSoldQty);
+                case RENTED -> Comparator.comparingInt(BestSellerItem::getRentedQty);
+                default -> Comparator.comparingInt(BestSellerItem::getTotalQty);
+            };
+            if (filter.getSortOrder() == BestSellerFilter.SortOrder.DESC) {
+                comparator = comparator.reversed();
+            }
+            list.sort(comparator);
+
+            return list.stream().limit(10).collect(Collectors.toList());
+
+        } catch (SQLException e) {
             throw new Exception("Lỗi kết nối máy chủ hoặc truy vấn CSDL, vui lòng thử lại sau.", e);
         }
     }

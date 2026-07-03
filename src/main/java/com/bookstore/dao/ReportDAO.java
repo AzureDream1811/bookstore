@@ -44,4 +44,43 @@ public class ReportDAO {
         }
         return list;
     }
+    
+    public List<Object[]> getSoldQuantityByBook(java.time.LocalDate fromDate, java.time.LocalDate toDate) throws SQLException {
+        List<Object[]> result = new ArrayList<>();
+        String sql = "SELECT od.book_id AS book_id, SUM(od.quantity) AS qty " +
+                "FROM order_detail od " +
+                "JOIN orders o ON o.order_id = od.order_id " +
+                "WHERE o.status = 'PAID' AND DATE(o.created_date) BETWEEN ? AND ? " +
+                "GROUP BY od.book_id";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(fromDate));
+            ps.setDate(2, Date.valueOf(toDate));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(new Object[]{rs.getInt("book_id"), rs.getInt("qty")});
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<Object[]> getRentedQuantityByBook(java.time.LocalDate fromDate, java.time.LocalDate toDate) throws SQLException {
+        List<Object[]> result = new ArrayList<>();
+        String sql = "SELECT book_id, COUNT(*) AS qty " +
+                "FROM rental " +
+                "WHERE status IN ('RENTED', 'RETURNED') AND rent_date BETWEEN ? AND ? " +
+                "GROUP BY book_id";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(fromDate));
+            ps.setDate(2, Date.valueOf(toDate));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(new Object[]{rs.getInt("book_id"), rs.getInt("qty")});
+                }
+            }
+        }
+        return result;
+    }
 }
