@@ -3,6 +3,7 @@ package com.bookstore.controller;
 import com.bookstore.model.User;
 import com.bookstore.service.AuthService;
 import com.bookstore.view.ConsoleView;
+import jakarta.mail.MessagingException;
 
 import java.sql.SQLException;
 
@@ -57,7 +58,7 @@ public class AuthController {
             );
 
             view.print("Dang ky thanh cong!");
-            view.print("Ma OTP da duoc gui.");
+            view.print("Ma OTP da duoc gui den email. Ma co hieu luc trong 5 phut.");
 
             String otp = view.readLine("Nhap ma OTP: ");
 
@@ -65,10 +66,13 @@ public class AuthController {
                 view.print("Xac thuc tai khoan thanh cong!");
                 return user;
             } else {
-                view.printError("Sai ma OTP.");
+                view.printError("Sai hoac het han ma OTP.");
                 return null;
             }
 
+        } catch (MessagingException e) {
+            view.printError("Khong gui duoc email OTP: " + e.getMessage());
+            return null;
         } catch (IllegalArgumentException | SQLException e) {
             view.printError(e.getMessage());
             return null;
