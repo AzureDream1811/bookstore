@@ -230,8 +230,45 @@ public class ConsoleView {
         print("\n--- DANH SÁCH LOẠI BIỂU ĐỒ HỖ TRỢ ---");
         print("1. Biểu đồ cột (Bar Chart) - So sánh theo ngày");
         print("2. Biểu đồ tròn (Pie Chart) - Tỷ lệ dòng tiền tổng cộng");
-        print("3. Biểu đồ đường (Line Chart) - Biến động xu hướng");
+        print("3. Biểu đồ đường (Line Chart) - Biến động xu hướn1g");
         print("0. Hủy bỏ quay lại");
         return readInt("Chọn loại biểu đồ bạn muốn vẽ: ");
+    }
+    // ==========================================
+    // THUÊ SÁCH
+    // ==========================================
+
+    public void showRentalInfo() {
+        print("");
+        print("===== THUE SACH =====");
+    }
+
+    public int inputBookId() {
+        return readInt("Nhap ma sach: ");
+    }
+
+    public int inputRentalDays() {
+        return readInt("Nhap so ngay thue (1-30): ");
+    }
+
+    public int inputRentalId() {
+        return readInt("Nhap ma phieu thue: ");
+    }
+
+    public String inputKeyword() {
+        return readLine("Nhap tu khoa tim kiem: ");
+    }
+
+    public void showRentalSuccess(int rentalId, double rentalFee) {
+        print("");
+        print("===== THUE SACH THANH CONG =====");
+        print("Ma phieu thue : " + rentalId);
+        print("Tong tien thue: " + rentalFee);
+    }
+
+    public void showReturnSuccess(double lateFee) {
+        print("");
+        print("===== TRA SACH THANH CONG =====");
+        print("Phi tre han : " + lateFee);
     }
 }
