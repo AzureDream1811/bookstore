@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class ExportExcelService {
         if (!dir.exists()) dir.mkdirs();
 
         // Business Rule 5: Format tên file
-        String dateSuffix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String dateSuffix = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"));
         String baseFileName = "DoanhThu_" + dateSuffix;
 
         // Alternative Flow 5.1: Dữ liệu quá lớn, cần chia nhỏ (Chunking)

@@ -241,8 +241,6 @@ public class ConsoleView {
         print("1. Doanh thu theo khoang ngay");
         print("2. San pham ban chay");
         print("3. Bao cao ton kho");
-        print("4. Ve bieu do ban chay");
-        print("5. Xuat file bao cao");
         print("0. Quay lai");
         return readInt("Chon chuc nang: ");
     }
@@ -280,7 +278,7 @@ public class ConsoleView {
     public int showPostReportMenu() {
         print("\n--- THAO TÁC TIẾP THEO ---");
         print("1. Xuất file báo cáo");
-        print("2. Xuất biểu đồ");
+        print("2. Vẽ biểu đồ");
         print("0. Về trang chủ (Quay lại)");
         return readInt("Chọn chức năng: ");
     }

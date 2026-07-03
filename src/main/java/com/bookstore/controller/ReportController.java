@@ -41,7 +41,6 @@ public class ReportController {
                 reportData = reportService.generateRevenueReport(filter);
                 // Basic Flow 5, 6, 7: Gọi Service xử lý
                 RevenueReportData result = reportService.generateRevenueReport(filter);
-
                 // Basic Flow 9 & 10: Hiển thị kết quả
                 view.displayRevenueResult(result);
                 isSuccess = true; // Kết thúc thành công
@@ -91,7 +90,6 @@ public class ReportController {
             while (!isChartDone) {
                 int chartChoice = view.showChartTypeMenu();
                 if (chartChoice == 0) return; // Người dùng chọn quay lại
-
                 ChartType selectedType = null;
                 switch (chartChoice) {
                     case 1 -> selectedType = ChartType.BAR;
@@ -102,7 +100,6 @@ public class ReportController {
                         continue;
                     }
                 }
-
                 try {
                     // Đẩy sang Module xử lý kiểm tra nghiệp vụ và vẽ
                     chartService.processAndRenderChart(selectedType, reportData);
