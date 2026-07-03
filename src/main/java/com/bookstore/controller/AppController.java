@@ -2,6 +2,7 @@ package com.bookstore.controller;
 
 import com.bookstore.model.User;
 import com.bookstore.view.ConsoleView;
+import com.bookstore.controller.ComboController;
 
 public class AppController {
     private ConsoleView view;
@@ -12,13 +13,15 @@ public class AppController {
     // VD: private BookController bookController;
     //     private CartService cartService;
     //     ...
+    private ComboController comboController;
 
     private User currentUser = null;
 
     // TODO: 2. Nhớ truyền thêm các Controller đó vào constructor này
-    public AppController(ConsoleView view, AuthController authController/*, ReportController reportController*/) {
+    public AppController(ConsoleView view, AuthController authController, ComboController comboController/*, ReportController reportController*/) {
         this.view = view;
         this.authController = authController;
+        this.comboController = comboController;
 //        this.reportController = reportController;
     }
 
@@ -83,8 +86,12 @@ public class AppController {
         while (!back) {
             int choice = view.showDiscountMenu();
             switch (choice) {
-                // TODO : 5. Gọi các hàm của discountService tại đây
-                // VD: case 1 -> discountService.listCombos();
+                case 1 -> comboController.listCombos();
+                case 2 -> comboController.createCombo();
+                case 3 -> comboController.cancelCombo();
+                case 4 -> comboController.updateCombo();
+                // case 5 -> Tao voucher: can them discountService/voucherController
+                // case 6 -> Thong bao sale
                 case 0 -> back = true;
                 default -> view.printError("Lựa chọn không hợp lệ");
             }

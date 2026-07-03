@@ -1,5 +1,26 @@
 package com.bookstore;
 
+import com.bookstore.controller.AuthController;
+import com.bookstore.controller.BookController;
+import com.bookstore.controller.ComboController;
+import com.bookstore.controller.InventoryController;
+import com.bookstore.controller.UserController;
+import com.bookstore.model.Book;
+import com.bookstore.model.Combo;
+import com.bookstore.model.ComboDetail;
+import com.bookstore.model.Order;
+import com.bookstore.model.OrderDetail;
+import com.bookstore.model.Rental;
+import com.bookstore.model.User;
+import com.bookstore.service.CartService;
+import com.bookstore.service.DiscountService;
+import com.bookstore.service.ReportService;
+import com.bookstore.service.RentalService;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import com.bookstore.controller.*;
 import com.bookstore.view.ConsoleView;
 
@@ -11,6 +32,7 @@ public class Main {
         BookController bookController = new BookController(view);
         InventoryController inventoryController = new InventoryController(view);
         UserController userController = new UserController(view);
+        ComboController comboController = new ComboController(view);
         CartService cartService = new CartService();
         DiscountService discountService = new DiscountService();
         RentalService rentalService = new RentalService();
@@ -44,7 +66,7 @@ public class Main {
                     case 2 -> currentUser = authController.register();
                     case 3 -> handleBookMenu(view, bookController);
                     case 4 -> handleInventoryMenu(view, inventoryController);
-                    case 5 -> handleDiscountMenu(view, discountService);
+                    case 5 -> handleDiscountMenu(view, discountService, comboController);
                     case 6 -> currentUser = handleCartMenu(view, cartService, currentUser);
                     case 7 -> currentUser = handleRentalMenu(view, rentalService, currentUser);
                     case 8 -> handleReportMenu(view, reportService);
@@ -101,7 +123,8 @@ public class Main {
         }
     }
 
-    private static void handleDiscountMenu(ConsoleView view, DiscountService discountService) {
+    private static void handleDiscountMenu(ConsoleView view, DiscountService discountService,
+                                            ComboController comboController) {
         boolean back = false;
         while (!back) {
             view.print("");
@@ -109,15 +132,17 @@ public class Main {
             view.print("1. Danh sach combo");
             view.print("2. Tao combo");
             view.print("3. Huy combo");
-            view.print("4. Tao voucher");
-            view.print("5. Thong bao sale");
+            view.print("4. Cap nhat combo");
+            view.print("5. Tao voucher");
+            view.print("6. Thong bao sale");
             view.print("0. Quay lai");
             switch (view.readInt("Chon chuc nang: ")) {
                 case 1 -> listCombos(view, discountService);
                 case 2 -> createCombo(view, discountService);
                 case 3 -> cancelCombo(view, discountService);
-                case 4 -> createVoucher(view, discountService);
-                case 5 -> view.print("Thong bao: he thong da kich hoat chien dich giam gia.");
+                case 4 -> comboController.updateCombo();
+                case 5 -> createVoucher(view, discountService);
+                case 6 -> view.print("Thong bao: he thong da kich hoat chien dich giam gia.");
                 case 0 -> back = true;
                 default -> view.printError("Lua chon khong hop le");
             }
