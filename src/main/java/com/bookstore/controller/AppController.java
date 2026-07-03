@@ -159,8 +159,7 @@ public class AppController {
         while (!back) {
             int choice = view.showReportMenu();
             switch (choice) {
-                case 1 -> reportController.handleRevenueReportRequest();
-                // TODO (Bạn của bạn): 7. Bổ sung các báo cáo khác ở đây nếu có
+                case 1 -> reportController.handleRevenueReportRequest(currentUser);
                 case 0 -> back = true;
                 default -> view.printError("Lựa chọn không hợp lệ");
             }
