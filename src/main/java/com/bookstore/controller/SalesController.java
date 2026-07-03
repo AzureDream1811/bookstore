@@ -39,28 +39,48 @@ public class SalesController {
     }
 
     public void processRefund() {
-        int orderId = view.readInt("Nhap orderId can hoan tien: ");
-        try {
-            if (orderId < 1) {
-                throw new IllegalArgumentException("OrderId khong hop le");
-            }
-            Order order = cartService.getInvoiceDetail(orderId);
-            printInvoice(order);
-            if (!"PAID".equals(order.getStatus())) {
-                view.printError("Chi co the hoan tien cho don hang da thanh toan (PAID). Trang thai hien tai: " + order.getStatus());
-                return;
-            }
-            String confirm = view.readLine("Xac nhan hoan tien toan bo don hang nay? (Y/N): ");
-            if (!confirm.equalsIgnoreCase("Y")) {
-                view.print("Da huy hoan tien.");
-                return;
-            }
-            double refund = cartService.processRefund(orderId);
-            view.print(String.format("Da hoan tien cho don %d, so tien hoan: %.0f", orderId, refund));
-        } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
-            view.printError(e.getMessage());
+    int orderId = view.readInt("Nhập orderId cần hoàn tiền: ");
+    try {
+        if (orderId < 1) {
+            throw new IllegalArgumentException("OrderId không hợp lệ");
         }
+
+        Order order = cartService.getInvoiceDetail(orderId);
+        printInvoice(order);
+
+        // Kiểm tra điều kiện hoàn tiền (theo diagram)
+        if (!"PAID".equals(order.getStatus())) {
+            view.printError("Chỉ có thể hoàn tiền cho đơn hàng đã thanh toán (PAID). Trạng thái hiện tại: " + order.getStatus());
+            return;
+        }
+
+        // Kiểm tra thời hạn hoàn tiền (ví dụ: trong 7 ngày)
+        if (order.getCreatedDate() != null && 
+            order.getCreatedDate().isBefore(java.time.LocalDateTime.now().minusDays(7))) {
+            view.printError("Đơn hàng đã quá thời hạn hoàn tiền (7 ngày).");
+            return;
+        }
+
+        view.print("\n=== XÁC NHẬN HOÀN TIỀN ===");
+        view.print("Sẽ hoàn toàn bộ số tiền: " + order.getTotalAmount() + " VND");
+        String confirm = view.readLine("Bạn có chắc chắn muốn hoàn tiền? (Y/N): ");
+
+        if (!confirm.equalsIgnoreCase("Y")) {
+            view.print("Đã hủy yêu cầu hoàn tiền.");
+            return;
+        }
+
+        // Thực hiện hoàn tiền
+        double refundAmount = cartService.processRefund(orderId);
+        
+        view.print("Hoàn tiền thành công!");
+        view.print("Số tiền đã hoàn: " + refundAmount + " VND");
+        view.print("Trạng thái đơn hàng: REFUNDED");
+
+    } catch (IllegalArgumentException | IllegalStateException | SQLException e) {
+        view.printError(e.getMessage());
     }
+}
 
     public void exchangeProduct() {
         int orderId = view.readInt("Nhap orderId can doi tra: ");
