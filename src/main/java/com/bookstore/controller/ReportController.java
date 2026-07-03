@@ -3,8 +3,12 @@ package com.bookstore.controller;
 import com.bookstore.model.ReportFilter;
 import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
+import com.bookstore.model.Book;
 import com.bookstore.service.ReportService;
 import com.bookstore.view.ConsoleView;
+
+import java.sql.SQLException;
+import java.util.List;
 
 public class ReportController {
     private ReportService reportService;
@@ -43,7 +47,5 @@ public class ReportController {
             }
         }
 
-        // Basic Flow 11: Chọn thao tác tiếp theo (Xuất Excel, Xem biểu đồ...) có thể gọi menu ở đây
     }
-
 }

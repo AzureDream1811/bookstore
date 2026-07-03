@@ -4,9 +4,19 @@ import com.bookstore.model.User;
 import com.bookstore.view.ConsoleView;
 
 public class AppController {
-    private ConsoleView view;
-    private AuthController authController;
-    private ReportController reportController;
+    private final ConsoleView view;
+    private final AuthController authController;
+    private final BookController bookController;
+    private final InventoryController inventoryController;
+    private final UserController userController;
+    private final DiscountController discountController;
+    private final CartController cartController;
+    private final RentalController rentalController;
+    private final ReportController reportController;
+    private final SalesController salesController;
+
+
+
 
     // TODO: 1. Khai báo thêm các Controller/Service khác ở đây
     // VD: private BookController bookController;
@@ -20,30 +30,35 @@ public class AppController {
         this.view = view;
         this.authController = authController;
         this.reportController = reportController;
+        this.bookController = new BookController(view);
+        this.inventoryController = new InventoryController(view);
+        this.userController = new UserController(view);
+        this.discountController = new DiscountController(view);
+        this.cartController = new CartController(view);
+        this.rentalController = new RentalController(view);
+        this.salesController = new SalesController(view);
     }
 
     public void start() {
         boolean running = true;
         while (running) {
-            String status = (currentUser == null) ? "Trạng thái: chưa đăng nhập"
-                    : "Trạng thái: " + currentUser.getFullName();
+            String status = currentUser == null
+                    ? "Trang thai: chua dang nhap"
+                    : "Trang thai: " + currentUser.getFullName();
 
-            // Gọi View để hiển thị menu và lấy số lựa chọn
-            int choice = view.showMainMenu(status);
-
-            // Logic rẽ nhánh
-            switch (choice) {
+            switch (view.showMainMenu(status)) {
                 case 1 -> currentUser = authController.login();
                 case 2 -> currentUser = authController.register();
                 case 3 -> handleBookMenu();
                 case 4 -> handleInventoryMenu();
-                case 5 -> handleDiscountMenu();
-                case 6 -> handleCartMenu();
-                case 7 -> view.printError("Tính năng thuê/mượn sách không được hỗ trợ trong phiên bản dự án này."); // Đã chốt loại bỏ tính năng mượn sách
+                case 5 -> discountController.open();
+                case 6 -> currentUser = cartController.open(currentUser);
+                case 7 -> currentUser = rentalController.open(currentUser);
                 case 8 -> handleReportMenu();
                 case 9 -> handleUserMenu();
+                case 10 -> currentUser = salesController.open(currentUser);
                 case 0 -> running = false;
-                default -> view.printError("Lựa chọn không hợp lệ");
+                default -> view.printError("Lua chon khong hop le");
             }
         }
     }
@@ -55,12 +70,15 @@ public class AppController {
     private void handleBookMenu() {
         boolean back = false;
         while (!back) {
-            int choice = view.showBookMenu();
-            switch (choice) {
-                // TODO: 3. Gọi các hàm của bookController tại đây
-                // VD: case 1 -> bookController.listAll();
+            switch (view.showBookMenu()) {
+                case 1 -> bookController.listAll();
+                case 2 -> bookController.search();
+                case 3 -> bookController.addBook();
+                case 4 -> bookController.editBook();
+                case 5 -> bookController.hideBook();
+                case 6 -> bookController.markFaulty();
                 case 0 -> back = true;
-                default -> view.printError("Lựa chọn không hợp lệ");
+                default -> view.printError("Lua chon khong hop le");
             }
         }
     }
@@ -68,42 +86,31 @@ public class AppController {
     private void handleInventoryMenu() {
         boolean back = false;
         while (!back) {
-            int choice = view.showInventoryMenu();
-            switch (choice) {
-                // TODO : 4. Gọi các hàm của inventoryController tại đây
-                // VD: case 1 -> inventoryController.createGoodsReceipt();
+            switch (view.showInventoryMenu()) {
+                case 1 -> inventoryController.createGoodsReceipt();
+                case 2 -> inventoryController.createGoodsIssue();
                 case 0 -> back = true;
-                default -> view.printError("Lựa chọn không hợp lệ");
+                default -> view.printError("Lua chon khong hop le");
             }
         }
     }
 
-    private void handleDiscountMenu() {
+    private void handleUserMenu() {
         boolean back = false;
         while (!back) {
-            int choice = view.showDiscountMenu();
-            switch (choice) {
-                // TODO : 5. Gọi các hàm của discountService tại đây
-                // VD: case 1 -> discountService.listCombos();
+            switch (view.showUserMenu()) {
+                case 1 -> userController.listUsers();
+                case 2 -> userController.changeRole();
                 case 0 -> back = true;
-                default -> view.printError("Lựa chọn không hợp lệ");
+                default -> view.printError("Lua chon khong hop le");
             }
         }
     }
 
     private void handleCartMenu() {
-        boolean back = false;
-        while (!back) {
-            int choice = view.showCartMenu();
-            switch (choice) {
-                // TODO : 6. Gọi các hàm của cartService tại đây.
-                // Lưu ý truyền currentUser.getUserId() nếu chức năng cần user đang đăng nhập
-                // VD: case 1 -> currentUser = checkout(...);
-                case 0 -> back = true;
-                default -> view.printError("Lựa chọn không hợp lệ");
-            }
-        }
+        currentUser = cartController.open(currentUser);
     }
+}
 
     private void handleReportMenu() {
         boolean back = false;
@@ -118,16 +125,4 @@ public class AppController {
         }
     }
 
-    private void handleUserMenu() {
-        boolean back = false;
-        while (!back) {
-            int choice = view.showUserMenu();
-            switch (choice) {
-                // TODO : 8. Gọi các hàm của userController tại đây
-                // VD: case 1 -> userController.listUsers();
-                case 0 -> back = true;
-                default -> view.printError("Lựa chọn không hợp lệ");
-            }
-        }
-    }
-}
+
