@@ -159,4 +159,24 @@ public class RentalDAO {
             return ps.executeUpdate() > 0;
         }
     }
+    public List<Rental> findRentalTickets(int userId) throws SQLException {
+
+        List<Rental> list = new ArrayList<>();
+
+        String sql = " SELECT * FROM rental WHERE user_id = ? AND status = 'RENTED' ORDER BY rental_id DESC ";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(map(rs));
+            }
+        }
+
+        return list;
+    }
 }

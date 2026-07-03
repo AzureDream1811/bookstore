@@ -1,6 +1,6 @@
 package com.bookstore.model;
 
-public enum PaymentMethod {
+public enum Payment {
     CASH_ON_DELIVERY("Thanh toán khi nhận hàng"),
     ONLINE_BANKING("Thanh toán Online qua Ngân hàng"),
     MOMO("Ví MoMo"),
@@ -8,7 +8,7 @@ public enum PaymentMethod {
 
     private final String displayName;
 
-    PaymentMethod(String displayName) {
+    Payment(String displayName) {
         this.displayName = displayName;
     }
 

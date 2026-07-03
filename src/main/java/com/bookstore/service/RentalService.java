@@ -60,31 +60,21 @@ public class RentalService {
 
         return rental;
     }
+
     public List<Book> getAvailableBooks() throws SQLException {
         return bookDAO.findAvailableBooks();
     }
+
     public double returnBook(int rentalId) throws SQLException {
 
         Rental rental = rentalDAO.findById(rentalId);
 
-        if (rental == null) {
+        if (rental == null)
             throw new IllegalArgumentException("Khong tim thay phieu thue");
-        }
 
-        if (!"RENTED".equals(rental.getStatus())) {
-            throw new IllegalStateException("Phieu thue khong hop le");
-        }
+        double lateFee = calculateLateFee(rentalId);
 
-        LocalDate today = LocalDate.now();
-
-        long overdueDays = Math.max(
-                0,
-                ChronoUnit.DAYS.between(rental.getDueDate(), today)
-        );
-
-        double lateFee = overdueDays * LATE_FEE_PER_DAY;
-
-        rentalDAO.complete(rentalId, today, lateFee);
+        rentalDAO.complete(rentalId, LocalDate.now(), lateFee);
 
         bookDAO.updateStock(rental.getBookId(), 1);
 
@@ -98,6 +88,7 @@ public class RentalService {
     public List<Rental> listOverdueRentals() throws SQLException {
         return rentalDAO.findOverdue();
     }
+
     public List<Rental> getAllRentals() throws SQLException {
         return rentalDAO.getAllRentals();
     }
@@ -110,5 +101,27 @@ public class RentalService {
             throws SQLException {
 
         return rentalDAO.updateStatus(rentalId, status);
+    }
+
+    public List<Rental> getRentalTickets(int userId) throws SQLException {
+        return rentalDAO.findRentalTickets(userId);
+    }
+
+    public Rental findRental(int rentalId) throws SQLException {
+
+        return rentalDAO.findById(rentalId);
+    }
+    public double calculateLateFee(int rentalId) throws SQLException {
+
+        Rental rental = rentalDAO.findById(rentalId);
+
+        LocalDate today = LocalDate.now();
+
+        long overdueDays = Math.max(
+                0,
+                ChronoUnit.DAYS.between(rental.getDueDate(), today)
+        );
+
+        return overdueDays * LATE_FEE_PER_DAY;
     }
 }
