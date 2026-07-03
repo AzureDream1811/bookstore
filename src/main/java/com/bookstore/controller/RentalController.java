@@ -164,4 +164,98 @@ public class RentalController {
             throw new IllegalArgumentException(message);
         }
     }
+
+    public void openStaff() {
+
+        boolean back = false;
+
+        while (!back) {
+
+            int choice = view.showRentalManagementMenu();
+
+            switch (choice) {
+
+                case 1 -> showAllRentals();
+
+                case 2 -> searchRental();
+
+                case 3 -> updateRentalStatus();
+
+                case 0 -> back = true;
+
+                default -> view.printError("Lua chon khong hop le");
+            }
+        }
+    }
+
+    public void showAllRentals() {
+
+        try {
+
+            List<Rental> list = rentalService.getAllRentals();
+
+            if (list.isEmpty()) {
+                view.print("Khong co phieu thue.");
+                return;
+            }
+
+            for (Rental r : list) {
+
+                view.print("--------------------------------");
+                view.print("Ma phieu : " + r.getRentalId());
+                view.print("User     : " + r.getUserId());
+                view.print("Book     : " + r.getBookId());
+                view.print("Trang thai : " + r.getStatus());
+            }
+
+        } catch (Exception e) {
+            view.printError(e.getMessage());
+        }
+    }
+
+    public void searchRental() {
+
+        String keyword = view.inputKeyword();
+
+        try {
+
+            List<Rental> list = rentalService.searchRental(keyword);
+
+            if (list.isEmpty()) {
+                view.print("Khong tim thay phieu thue.");
+                return;
+            }
+
+            for (Rental r : list) {
+
+                view.print("--------------------------------");
+                view.print("Ma phieu : " + r.getRentalId());
+                view.print("User     : " + r.getUserId());
+                view.print("Book     : " + r.getBookId());
+                view.print("Trang thai : " + r.getStatus());
+            }
+
+        } catch (Exception e) {
+            view.printError(e.getMessage());
+        }
+    }
+
+    public void updateRentalStatus() {
+
+        try {
+            int rentalId = view.inputRentalId();
+            String status = view.inputStatus();
+
+            boolean success = rentalService.updateStatus(rentalId, status);
+
+            if (success) {
+                view.showUpdateSuccess();
+            } else {
+                view.showUpdateError();
+            }
+
+        } catch (Exception e) {
+            view.printError(e.getMessage());
+        }
+    }
 }

@@ -53,16 +53,21 @@ public class AppController {
         }
     }
 
-    /** @return false neu nguoi dung chon "Thoat" */
+    /**
+     * @return false neu nguoi dung chon "Thoat"
+     */
     private boolean handleGuestMenu() {
         switch (view.showGuestMenu()) {
             case 1 -> currentUser = authController.login();
             case 2 -> currentUser = authController.register();
-            case 0 -> { return false; }
+            case 0 -> {
+                return false;
+            }
             default -> view.printError("Lua chon khong hop le");
         }
         return true;
     }
+
     //menu cho khach
     private boolean handleCustomerMenu() {
         String status = "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")";
@@ -78,9 +83,12 @@ public class AppController {
         }
         return true;
     }
+
     //menu cho nhan vien
     private boolean handleStaffMenu() {
-        String status = "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")";
+        String status = "Trang thai: "
+                + currentUser.getFullName()
+                + " (" + currentUser.getRole() + ")";
         switch (view.showStaffMenu(status)) {
             case 1 -> handleBookMenu(currentUser);
             case 2 -> handleInventoryMenu();
@@ -89,14 +97,16 @@ public class AppController {
             case 5 -> handleReportMenu();
             case 6 -> handleUserMenu();
             case 7 -> currentUser = salesController.open(currentUser);
+            case 8 -> rentalController.openStaff();
             case 0 -> {
-                this.currentUser = null;
+                currentUser = null;
                 view.print("Da dang xuat.");
             }
-            default -> view.printError("Ban khong co quyen truy cap chuc nang nay");
+            default -> view.printError("Lua chon khong hop le");
         }
         return true;
     }
+
     //menu search cua khach
     private void handleBookMenuCustomer(User user) {
         boolean back = false;
@@ -165,8 +175,8 @@ public class AppController {
             int choice = view.showReportMenu();
             switch (choice) {
                 case 1 -> reportController.handleRevenueReportRequest(currentUser);
+                case 2 -> reportController.handleBestSellerReportRequest();
                 case 0 -> back = true;
-                case 2 -> System.out.print("Đang phát triển");
                 case 3 -> System.out.print("Đang phát triển");
 
                 default -> view.printError("Lựa chọn không hợp lệ");

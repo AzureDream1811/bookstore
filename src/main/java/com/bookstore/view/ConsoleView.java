@@ -1,12 +1,16 @@
 package com.bookstore.view;
 
+import com.bookstore.model.Rental;
 import com.bookstore.model.ReportFilter;
 import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
+import com.bookstore.model.BestSellerFilter;
+import com.bookstore.model.BestSellerItem;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
+import java.util.List;
 
 public class ConsoleView {
     private final Scanner scanner = new Scanner(System.in);
@@ -29,7 +33,9 @@ public class ConsoleView {
             }
         }
     }
-
+    public String inputStatus() {
+        return readLine("Nhap trang thai moi (RENTED/RETURNED/CANCELLED): ");
+    }
     public double readDouble(String prompt) {
         while (true) {
             try {
@@ -86,9 +92,60 @@ public class ConsoleView {
         System.out.println("-------------------------------------");
         System.out.println("DOANH THU THUẦN    : " + totalResult.getNetRevenue());
     }
+    public void showUpdateSuccess() {
+        print("Cap nhat trang thai thanh cong.");
+    }
 
+    public void showUpdateError() {
+        printError("Cap nhat trang thai that bai.");
+    }
     public void displayError(String message) {
         System.out.println("[LỖI] " + message);
+    }
+    public BestSellerFilter getBestSellerFilterInput() {
+        System.out.println("=== BỘ LỌC SẢN PHẨM BÁN CHẠY ===");
+
+        print("1. Tất cả");
+        print("2. Bán");
+        print("3. Thuê");
+        int typeChoice = readInt("Chọn loại (1-3): ");
+        BestSellerFilter.Type type = switch (typeChoice) {
+            case 2 -> BestSellerFilter.Type.SOLD;
+            case 3 -> BestSellerFilter.Type.RENTED;
+            default -> BestSellerFilter.Type.ALL;
+        };
+
+        String fromStr = readLine("Nhập ngày bắt đầu (dd/MM/yyyy ");
+        String toStr = readLine("Nhập ngày kết thúc (dd/MM/yyyy ");
+        java.time.LocalDate fromDate = fromStr.isBlank() ? null : java.time.LocalDate.parse(fromStr, formatter);
+        java.time.LocalDate toDate = toStr.isBlank() ? null : java.time.LocalDate.parse(toStr, formatter);
+
+        print("1. Tăng dần");
+        print("2. Giảm dần");
+        int sortChoice = readInt("Chọn thứ tự sắp xếp (1-2): ");
+        BestSellerFilter.SortOrder sortOrder = sortChoice == 1
+                ? BestSellerFilter.SortOrder.ASC
+                : BestSellerFilter.SortOrder.DESC;
+
+        return new BestSellerFilter(fromDate, toDate, type, sortOrder);
+    }
+
+    public void displayBestSellerResult(List<BestSellerItem> items, BestSellerFilter.Type type) {
+        System.out.println("\n=== TOP SẢN PHẨM BÁN CHẠY ===");
+        int rank = 1;
+        for (BestSellerItem item : items) {
+            StringBuilder line = new StringBuilder();
+            line.append(rank++).append(". ").append(item.getTitle());
+            if (type == BestSellerFilter.Type.SOLD) {
+                line.append(" - ban: ").append(item.getSoldQty()).append(" cuon");
+            } else if (type == BestSellerFilter.Type.RENTED) {
+                line.append(" - thue: ").append(item.getRentedQty()).append(" cuon");
+            } else {
+                line.append(" - ban: ").append(item.getSoldQty()).append(" cuon")
+                        .append(" - thue: ").append(item.getRentedQty()).append(" cuon");
+            }
+            System.out.println(line);
+        }
     }
     // ==========================================
     // CÁC HÀM HIỂN THỊ MENU ĐIỀU HƯỚNG
@@ -129,6 +186,7 @@ public class ConsoleView {
         print("5. Thong ke bao cao");
         print("6. Quan ly tai khoan nguoi dung");
         print("7. Quan ly ban hang");
+        print("8. Quan ly phieu thue");
         print("0. Dang xuat");
         return readInt("Chon chuc nang: ");
     }
@@ -269,7 +327,35 @@ public class ConsoleView {
         print("===== TRA SACH THANH CONG =====");
         print("Phi tre han : " + lateFee);
     }
+// ==========================================
+// UC22 - QUAN LY PHIEU THUE
+// ==========================================
 
+    public int showRentalManagementMenu() {
+
+        print("");
+        print("===== QUAN LY PHIEU THUE =====");
+        print("1. Danh sach phieu thue");
+        print("2. Tim kiem phieu thue");
+        print("3. Cap nhat trang thai");
+        print("0. Quay lai");
+
+        return readInt("Chon chuc nang: ");
+    }
+
+    public void showRentalDetail(Rental rental) {
+
+        print("--------------------------------");
+        print("Ma phieu   : " + rental.getRentalId());
+        print("User       : " + rental.getUserId());
+        print("Book       : " + rental.getBookId());
+        print("Ngay thue  : " + rental.getRentDate());
+        print("Han tra    : " + rental.getDueDate());
+        print("Ngay tra   : " + rental.getReturnDate());
+        print("Tien thue  : " + rental.getRentalFee());
+        print("Phi tre han: " + rental.getLateFee());
+        print("Trang thai : " + rental.getStatus());
+    }
     public void showBookList(com.bookstore.model.Page<com.bookstore.model.Book> bookPage) {
         print("");
         print("--- DANH SACH SACH ---");

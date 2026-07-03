@@ -22,11 +22,7 @@ public class RentalDAO {
 
     public int insert(Rental rental) throws SQLException {
 
-        String sql = """
-                INSERT INTO rental
-                (user_id, book_id, rent_date, due_date, days, rental_fee, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """;
+        String sql = " INSERT INTO rental (user_id, book_id, rent_date, due_date, days, rental_fee, status) VALUES (?, ?, ?, ?, ?, ?, ?) ";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -125,5 +121,42 @@ public class RentalDAO {
         r.setLateFee(rs.getDouble("late_fee"));
 
         return r;
+    }
+    public List<Rental> getAllRentals() throws SQLException {
+
+        List<Rental> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM rental ORDER BY rental_id DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(map(rs));
+            }
+        }
+
+        return list;
+    }
+
+    public List<Rental> searchRental(String keyword) throws SQLException {
+            return search(keyword);
+
+    }
+
+    public boolean updateStatus(int rentalId, String status) throws SQLException {
+
+        String sql =
+                "UPDATE rental SET status=? WHERE rental_id=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, status);
+            ps.setInt(2, rentalId);
+
+            return ps.executeUpdate() > 0;
+        }
     }
 }
