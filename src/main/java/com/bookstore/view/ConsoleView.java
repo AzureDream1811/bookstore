@@ -170,6 +170,8 @@ public class ConsoleView {
         print("1. Xem và tìm kiếm sách");
         print("2. Gio hang / hoa don");
         print("3. Quan ly ban hang");
+        print("4. Thue sach");
+        print("5. Tra sach");
         print("0. Dang xuat");
         return readInt("Chon chuc nang: ");
     }
