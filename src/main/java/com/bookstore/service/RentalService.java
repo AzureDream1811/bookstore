@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class RentalService {
+
     private static final int MAX_ACTIVE_RENTALS = 5;
     private static final double LATE_FEE_PER_DAY = 5000;
 
@@ -18,30 +19,76 @@ public class RentalService {
     private final BookDAO bookDAO = new BookDAO();
 
     public Rental rentBook(int userId, int bookId, int days) throws SQLException {
-        if (days < 1 || days > 30) throw new IllegalArgumentException("Thoi gian thue phai tu 1 den 30 ngay");
-        Book book = bookDAO.findById(bookId);
-        if (book == null || !book.isAvailable()) throw new IllegalStateException("Sach hien khong the thue");
-        if (rentalDAO.countActiveByUser(userId) >= MAX_ACTIVE_RENTALS) {
-            throw new IllegalStateException("Da dat gioi han thue toi da " + MAX_ACTIVE_RENTALS + " cuon");
+
+        if (days < 1 || days > 30) {
+            throw new IllegalArgumentException("Thoi gian thue phai tu 1 den 30 ngay");
         }
-        Rental rental = new Rental(0, userId, bookId, LocalDate.now(), days, "RENTED");
+
+        Book book = bookDAO.findById(bookId);
+
+        if (book == null) {
+            throw new IllegalArgumentException("Khong tim thay sach");
+        }
+
+        if (!book.isAvailable()) {
+            throw new IllegalStateException("Sach hien khong the thue");
+        }
+
+        if (rentalDAO.countActiveByUser(userId) >= MAX_ACTIVE_RENTALS) {
+            throw new IllegalStateException("Ban da dat gioi han thue toi da 5 cuon");
+        }
+
+        Rental rental = new Rental(
+                0,
+                userId,
+                bookId,
+                LocalDate.now(),
+                days,
+                "RENTED"
+        );
+
+        rental.setRentalFee(book.getRentPricePerDay() * days);
+
         int id = rentalDAO.insert(rental);
+
+        if (id <= 0) {
+            throw new SQLException("Khong tao duoc phieu thue");
+        }
+
         rental.setRentalId(id);
+
         bookDAO.updateStock(bookId, -1);
+
         return rental;
     }
-
+    public List<Book> getAvailableBooks() throws SQLException {
+        return bookDAO.findAvailableBooks();
+    }
     public double returnBook(int rentalId) throws SQLException {
+
         Rental rental = rentalDAO.findById(rentalId);
-        if (rental == null || "RETURNED".equals(rental.getStatus())) {
-            throw new IllegalArgumentException("Phieu thue khong ton tai hoac da tra");
+
+        if (rental == null) {
+            throw new IllegalArgumentException("Khong tim thay phieu thue");
         }
+
+        if (!"RENTED".equals(rental.getStatus())) {
+            throw new IllegalStateException("Phieu thue khong hop le");
+        }
+
         LocalDate today = LocalDate.now();
-        LocalDate dueDate = rental.getRentDate().plusDays(rental.getDays());
-        long overdueDays = Math.max(0, ChronoUnit.DAYS.between(dueDate, today));
+
+        long overdueDays = Math.max(
+                0,
+                ChronoUnit.DAYS.between(rental.getDueDate(), today)
+        );
+
         double lateFee = overdueDays * LATE_FEE_PER_DAY;
+
         rentalDAO.complete(rentalId, today, lateFee);
+
         bookDAO.updateStock(rental.getBookId(), 1);
+
         return lateFee;
     }
 
@@ -52,4 +99,5 @@ public class RentalService {
     public List<Rental> listOverdueRentals() throws SQLException {
         return rentalDAO.findOverdue();
     }
+
 }
