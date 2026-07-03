@@ -2,19 +2,23 @@ package com.bookstore.service;
 
 import com.bookstore.dao.UserDAO;
 import com.bookstore.model.User;
+import jakarta.mail.MessagingException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class AuthService {
     private final UserDAO userDAO = new UserDAO();
+    private final SecureRandom random = new SecureRandom();
 
     public User register(String fullName,
                          String email,
                          String password,
-                         String role) throws SQLException {
+                         String role) throws SQLException, MessagingException {
 
         if (userDAO.findByEmail(email) != null) {
             throw new IllegalArgumentException("Email da ton tai.");
@@ -39,8 +43,7 @@ public class AuthService {
             throw new IllegalArgumentException("Vai tro khong hop le.");
         }
 
-        String otp = String.valueOf(
-                100000 + new java.util.Random().nextInt(900000));
+        String otp = String.valueOf(100000 + random.nextInt(900000));
 
         User user = new User();
 
@@ -50,14 +53,13 @@ public class AuthService {
         user.setRole(role);
 
         user.setVerifyCode(otp);
+        user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(5));
         user.setVerified(false);
 
         int id = userDAO.insert(user);
         user.setUserId(id);
 
-        System.out.println("====================");
-        System.out.println("Ma OTP: " + otp);
-        System.out.println("====================");
+        sendOtpEmail(email, fullName, otp);
 
         return user;
     }
@@ -117,10 +119,22 @@ public class AuthService {
             return false;
         if(user.isVerified())
             return true;
+        if (user.getOtpExpiresAt() == null || LocalDateTime.now().isAfter(user.getOtpExpiresAt()))
+            return false;
         if(!otp.equals(user.getVerifyCode()))
             return false;
         userDAO.verifyAccount(email);
         return true;
 
+    }
+
+    private void sendOtpEmail(String email, String fullName, String otp) throws MessagingException {
+        String subject = "Ma xac thuc tai khoan Bookstore";
+        String body = """
+                <p>Xin chao %s,</p>
+                <p>Ma OTP xac thuc tai khoan cua ban la: <b>%s</b></p>
+                <p>Ma nay co hieu luc trong 5 phut.</p>
+                """.formatted(fullName, otp);
+        new EmailService().sendMail(email, subject, body);
     }
 }

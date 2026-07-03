@@ -70,7 +70,10 @@ public class AppController {
             case 1 -> handleBookMenuCustomer();
             case 2 -> currentUser = cartController.open(currentUser);
             case 3 -> currentUser = salesController.open(currentUser);
-            case 0 -> { return false; }
+            case 0 -> {
+                this.currentUser = null;
+                view.print("Da dang xuat.");
+            }
             default -> view.printError("Ban khong co quyen truy cap chuc nang nay");
         }
         return true;
@@ -86,7 +89,10 @@ public class AppController {
             case 5 -> handleReportMenu();
             case 6 -> handleUserMenu();
             case 7 -> currentUser = salesController.open(currentUser);
-            case 0 -> { return false; }
+            case 0 -> {
+                this.currentUser = null;
+                view.print("Da dang xuat.");
+            }
             default -> view.printError("Ban khong co quyen truy cap chuc nang nay");
         }
         return true;

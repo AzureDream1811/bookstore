@@ -1,10 +1,20 @@
 USE bookstore;
 
--- 1. Thêm dữ liệu người dùng (1 Admin, 2 Customer)
-INSERT INTO user (full_name, email, password_hash, role)
-VALUES ('Quản trị viên', 'admin@bookstore.com', 'hashed_pwd_admin', 'ADMIN'),
-       ('Nguyễn Văn A', 'nva@gmail.com', 'hashed_pwd_123', 'CUSTOMER'),
-       ('Trần Thị B', 'ttb@gmail.com', 'hashed_pwd_456', 'CUSTOMER');
+-- 1. Thêm dữ liệu người dùng (1 Admin, 2 Customer, 1 Staff)
+-- Admin password: Admin123
+-- Customer password: Customer123
+-- Customer password: Customer456
+-- Staff password: Staff123
+INSERT INTO user (full_name, email, password_hash, role, verify_code, otp_expires_at, verified)
+VALUES ('Quản trị viên', 'admin@bookstore.com', '3b612c75a7b5048a435fb6ec81e52ff92d6d795a8b5a9c17070f6a63c97a53b2',
+        'ADMIN', NULL, NULL, TRUE),
+       ('Nguyễn Văn A', 'nva@gmail.com', 'e6f59d120b99238e3a81b7322136ac9be6f9e27c764f8daca738f68c16a62202', 'CUSTOMER',
+        NULL, NULL, TRUE),
+       ('Trần Thị B', 'ttb@gmail.com', '9cf47a89f39cd8001fea83b923369f82c1b8b2fe40fc123d14dc1e6b4d751f78', 'CUSTOMER',
+        NULL, NULL, TRUE),
+       ('Nhân viên bán hàng', 'staff@bookstore.com',
+        '2f005e42a17da46ec51ba6f11d725e60788931a1dadd33d9cb85084fb32bb166',
+        'STAFF', NULL, NULL, TRUE);
 
 -- 2. Thêm dữ liệu thành viên cho Customer (user_id 2 và 3)
 INSERT INTO member (member_id, membership_rank, points)
