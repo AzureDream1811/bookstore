@@ -86,7 +86,7 @@ public class AppController {
             case 2 -> handleInventoryMenu();
             case 3 -> discountController.open();
             case 4 -> currentUser = cartController.open(currentUser);
-            //case 5 -> reportController.open(); khong thay open() trong reportController
+            case 5 -> handleReportMenu();
             case 6 -> handleUserMenu();
             case 7 -> currentUser = salesController.open(currentUser);
             case 0 -> {
@@ -166,6 +166,9 @@ public class AppController {
             switch (choice) {
                 case 1 -> reportController.handleRevenueReportRequest(currentUser);
                 case 0 -> back = true;
+                case 2 -> System.out.print("Đang phát triển");
+                case 3 -> System.out.print("Đang phát triển");
+
                 default -> view.printError("Lựa chọn không hợp lệ");
             }
         }
