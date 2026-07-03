@@ -14,7 +14,7 @@ public class AppController {
     private final RentalController rentalController;
     private final ReportController reportController;
     private final SalesController salesController;
-
+    private final PaymentController paymentController;
 
 
 
@@ -37,6 +37,7 @@ public class AppController {
         this.cartController = new CartController(view);
         this.rentalController = new RentalController(view);
         this.salesController = new SalesController(view);
+        this.paymentController = new PaymentController(view);
     }
 
     public void start() {
@@ -183,6 +184,9 @@ public class AppController {
                 default -> view.printError("Lựa chọn không hợp lệ");
             }
         }
+    }
+    public void checkout(User customer) {
+        paymentController.processPayment(customer);
     }
 }
 
