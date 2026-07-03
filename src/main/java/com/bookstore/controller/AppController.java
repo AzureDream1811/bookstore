@@ -166,6 +166,11 @@ public class AppController {
             }
         }
     }
+    private PaymentController paymentController = new PaymentController();
+
+    public void checkout(Customer customer) {
+        paymentController.processPayment(customer);
+}
 }
 
 
