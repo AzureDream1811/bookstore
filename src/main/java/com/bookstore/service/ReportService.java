@@ -9,6 +9,7 @@ import com.bookstore.model.RevenueReportData;
 import com.bookstore.model.RevenueResult;
 import com.bookstore.model.BestSellerFilter;
 import com.bookstore.model.BestSellerItem;
+
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -32,7 +33,9 @@ public class ReportService {
         return orderDAO.sumRevenue(fromDate, toDate);
     }
 
-    /** [bookId, title, soldQuantity] */
+    /**
+     * [bookId, title, soldQuantity]
+     */
     public List<Object[]> bestSellers(int limit) throws SQLException {
         return orderDAO.bestSellers(limit);
     }
@@ -79,59 +82,45 @@ public class ReportService {
         }
         Files.writeString(Path.of(filePath), builder.toString(), StandardCharsets.UTF_8);
     }
+
     public RevenueReportData generateRevenueReport(ReportFilter filter) throws Exception {
-        // Exception Flow 5.1: Kiểm tra dữ liệu đầu vào
         if (filter.getFromDate().isAfter(filter.getToDate())) {
             throw new IllegalArgumentException("Khoang thoi gian khng hop le");
         }
 
         try {
-            // DAO nay trả về danh sách theo từng ngày
             List<RevenueResult> dailyResults = reportDAO.getRevenueByFilter(filter);
-
-            // Exception Flow 6.2: Không có dữ liệu
             if (dailyResults == null || dailyResults.isEmpty()) {
                 throw new Exception("Khong co du lieu phu hop.");
             }
-
-            // Tính toán tổng số liệu từ danh sách theo ngày
             RevenueResult totalResult = new RevenueResult();
             double totalAmount = 0, totalDiscount = 0, totalShipping = 0, totalRefund = 0;
-
             for (RevenueResult day : dailyResults) {
                 totalAmount += day.getTotalProductAmount();
                 totalDiscount += day.getTotalDiscount();
                 totalShipping += day.getTotalShippingFee();
                 totalRefund += day.getTotalRefund();
             }
-
             totalResult.setTotalProductAmount(totalAmount);
             totalResult.setTotalDiscount(totalDiscount);
             totalResult.setTotalShippingFee(totalShipping);
             totalResult.setTotalRefund(totalRefund);
             totalResult.calculateNetRevenue();
-
-            // Đề phòng trường hợp có dòng dữ liệu nhưng doanh thu bằng 0
             if (totalResult.getNetRevenue() == 0 && totalAmount == 0) {
                 throw new Exception("Khong co du lieu phu hop.");
             }
-
-            // Trả về đối tượng chứa cả danh sách ngày và tổng cộng
             return new RevenueReportData(dailyResults, totalResult);
-
         } catch (SQLException e) {
-            // Exception Flow 2.1 & 6.1: Lỗi CSDL
             throw new Exception("Lỗi kết nối máy chủ hoặc truy vấn CSDL, vui lòng thử lại sau.", e);
         }
     }
+
     public List<BestSellerItem> generateBestSellerReport(BestSellerFilter filter) throws Exception {
         LocalDate toDate = filter.getToDate() != null ? filter.getToDate() : LocalDate.now();
         LocalDate fromDate = filter.getFromDate() != null ? filter.getFromDate() : toDate.minusDays(30);
-
         if (fromDate.isAfter(toDate)) {
             throw new IllegalArgumentException("Khoang thoi gian khong hop le");
         }
-
         try {
             Map<Integer, BestSellerItem> merged = new HashMap<>();
 

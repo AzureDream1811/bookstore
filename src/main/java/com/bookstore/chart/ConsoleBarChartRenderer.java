@@ -9,8 +9,6 @@ public class ConsoleBarChartRenderer implements ChartRenderer {
     public void render(RevenueReportData data) {
         System.out.println("\n--- [RENDER] BIỂU ĐỒ CỘT: SO SÁNH DOANH THU THUẦN GIỮA CÁC NGÀY ---");
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM");
-
-        // Tìm doanh thu thuần lớn nhất để tính toán tỷ lệ độ dài thanh ký tự (#)
         double maxNet = data.getDailyResults().stream()
                 .mapToDouble(RevenueResult::getNetRevenue)
                 .max().orElse(1.0);

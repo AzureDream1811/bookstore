@@ -11,8 +11,6 @@ import java.util.List;
 public class ReportDAO {
     public List<RevenueResult> getRevenueByFilter(ReportFilter filter) throws SQLException {
         List<RevenueResult> list = new ArrayList<>();
-        // SQL query sử dụng hàm SUM để gom nhóm dữ liệu.
-        // Lọc trạng thái: Completed, Paid, Delivered.
         String sql = "SELECT DATE(created_date) as report_date, " +
                 "SUM(total_product_amount) as total_amount, " +
                 "SUM(discount) as total_discount, " +
@@ -30,9 +28,9 @@ public class ReportDAO {
             stmt.setDate(2, Date.valueOf(filter.getToDate()));
 
             try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) { // Đổi từ if (rs.next()) thành while để lấy nhiều dòng
+                while (rs.next()) {
                     RevenueResult row = new RevenueResult();
-                    row.setDate(rs.getDate("report_date").toLocalDate()); // Lưu ngày
+                    row.setDate(rs.getDate("report_date").toLocalDate());
                     row.setTotalProductAmount(rs.getDouble("total_amount"));
                     row.setTotalDiscount(rs.getDouble("total_discount"));
                     row.setTotalShippingFee(rs.getDouble("total_shipping"));
@@ -44,7 +42,7 @@ public class ReportDAO {
         }
         return list;
     }
-    
+
     public List<Object[]> getSoldQuantityByBook(java.time.LocalDate fromDate, java.time.LocalDate toDate) throws SQLException {
         List<Object[]> result = new ArrayList<>();
         String sql = "SELECT od.book_id AS book_id, SUM(od.quantity) AS qty " +

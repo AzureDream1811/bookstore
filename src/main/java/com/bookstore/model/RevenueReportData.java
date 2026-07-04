@@ -11,6 +11,11 @@ public class RevenueReportData {
         this.totalResult = totalResult;
     }
 
-    public List<RevenueResult> getDailyResults() { return dailyResults; }
-    public RevenueResult getTotalResult() { return totalResult; }
+    public List<RevenueResult> getDailyResults() {
+        return dailyResults;
+    }
+
+    public RevenueResult getTotalResult() {
+        return totalResult;
+    }
 }
