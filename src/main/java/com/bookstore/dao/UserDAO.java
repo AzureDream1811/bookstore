@@ -93,5 +93,23 @@ public class UserDAO {
             ps.executeUpdate();
         }
     }
+    public void updatePassword(int userId, String newPasswordHash) throws SQLException {
+        String sql = "UPDATE user SET password_hash = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPasswordHash);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+    }
+}
 
+    public void updateEmail(int userId, String newEmail) throws SQLException {
+        String sql = "UPDATE user SET email = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newEmail);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+    }
+}
 }

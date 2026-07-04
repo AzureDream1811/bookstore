@@ -16,20 +16,13 @@ public class AppController {
     private final SalesController salesController;
     private final PaymentController paymentController;
 
-
-
-    // TODO: 1. Khai báo thêm các Controller/Service khác ở đây
-    // VD: private BookController bookController;
-    //     private CartService cartService;
-    //     ...
-
     private User currentUser = null;
 
-    // TODO: 2. Nhớ truyền thêm các Controller đó vào constructor này
     public AppController(ConsoleView view, AuthController authController, ReportController reportController) {
         this.view = view;
         this.authController = authController;
         this.reportController = reportController;
+
         this.bookController = new BookController(view);
         this.inventoryController = new InventoryController(view);
         this.userController = new UserController(view);

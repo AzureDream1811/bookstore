@@ -17,57 +17,84 @@ public class CartService {
     private final BookDAO bookDAO = new BookDAO();
     private final VoucherDAO voucherDAO = new VoucherDAO();
 
-    public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCode) throws SQLException {
-        if (cartItems.isEmpty()) throw new IllegalArgumentException("Gio hang trong");
-        double total = 0;
-        for (OrderDetail item : cartItems) {
-            Book book = bookDAO.findById(item.getBookId());
-            if (book == null || !book.isAvailable() || book.getStockQuantity() < item.getQuantity()) {
-                throw new IllegalStateException("Sach id=" + item.getBookId() + " khong du de ban");
-            }
-            item.setPrice(book.getPrice());
-            total += item.subTotal();
-        }
+    // Trong CartService.java - thay thế hoặc cập nhật phần checkout và applyVoucher
+public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCode) throws SQLException {
+    if (cartItems.isEmpty()) throw new IllegalArgumentException("Gio hang trong");
 
-        double discount = 0;
-        if (voucherCode != null && !voucherCode.isBlank()) {
-            discount = applyVoucher(voucherCode, total);
+    double totalProductAmount = 0;
+    for (OrderDetail item : cartItems) {
+        Book book = bookDAO.findById(item.getBookId());
+        if (book == null || !book.isAvailable() || book.getStockQuantity() < item.getQuantity()) {
+            throw new IllegalStateException("Sach id=" + item.getBookId() + " khong du de ban");
         }
-        double finalAmount = total - discount;
+        item.setPrice(book.getPrice());
+        totalProductAmount += item.subTotal();
+    }
 
-        try (Connection conn = com.bookstore.util.DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                Order order = new Order(0, userId, finalAmount, "PENDING", voucherCode);
-                int orderId = orderDAO.createOrder(conn, order);
-                order.setOrderId(orderId);
-                for (OrderDetail item : cartItems) {
-                    item.setOrderId(orderId);
-                    orderDAO.addDetail(conn, item);
-                    bookDAO.updateStock(conn, item.getBookId(), -item.getQuantity());
-                }
-                if (voucherCode != null && !voucherCode.isBlank()) {
-                    voucherDAO.markUsed(conn, voucherCode);
-                }
-                order.setDetails(cartItems);
-                conn.commit();
-                return order;
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            }
+    double discount = 0;
+    String appliedVoucher = null;
+
+    // ========== USE CASE ÁP DỤNG VOUCHER ==========
+    if (voucherCode != null && !voucherCode.isBlank()) {
+        try {
+            discount = applyVoucher(voucherCode, totalProductAmount);
+            appliedVoucher = voucherCode;
+            view.print("Áp dụng voucher " + voucherCode + " thành công. Giảm: " + discount + " VND"); // giả sử có view
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // Exception flow: Thông báo lỗi cho khách hàng
+            throw new IllegalArgumentException("Voucher không hợp lệ: " + e.getMessage());
         }
     }
 
-    public double applyVoucher(String code, double orderTotal) throws SQLException {
+    double finalAmount = totalProductAmount - discount;
+
+    // Transaction
+    try (Connection conn = DBConnection.getConnection()) {
+        conn.setAutoCommit(false);
+        try {
+            Order order = new Order(0, userId, finalAmount, "PENDING", appliedVoucher);
+            int orderId = orderDAO.createOrder(conn, order);
+            order.setOrderId(orderId);
+
+            for (OrderDetail item : cartItems) {
+                item.setOrderId(orderId);
+                orderDAO.addDetail(conn, item);
+                bookDAO.updateStock(conn, item.getBookId(), -item.getQuantity());
+            }
+
+            if (appliedVoucher != null) {
+                voucherDAO.markUsed(conn, appliedVoucher);
+            }
+
+            order.setDetails(cartItems);
+            conn.commit();
+            return order;
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        }
+    }
+}
+
+   public double applyVoucher(String code, double orderTotal) throws SQLException {
         Voucher voucher = voucherDAO.findByCode(code);
-        if (voucher == null || !voucher.isValid()) {
-            throw new IllegalArgumentException("Voucher khong hop le hoac da het han/da dung");
-        }
+    
+        // Kiểm tra tồn tại
+        if (voucher == null) {
+            throw new IllegalArgumentException("Mã voucher không tồn tại");
+    }
+
+        // Kiểm tra hết hạn
+        if (!voucher.isValid()) {
+            throw new IllegalArgumentException("Voucher đã hết hạn hoặc đã được sử dụng");
+    }
+
+        // Kiểm tra giá trị đơn tối thiểu
         if (orderTotal < voucher.getMinOrderAmount()) {
-            throw new IllegalStateException("Don hang chua du dieu kien ap dung voucher (toi thieu "
-                    + voucher.getMinOrderAmount() + ")");
-        }
+            throw new IllegalStateException("Đơn hàng chưa đủ điều kiện áp dụng voucher (tối thiểu " 
+                + voucher.getMinOrderAmount() + " VND)");
+    }
+
         return voucher.getDiscountValue();
     }
 
@@ -124,30 +151,38 @@ public class CartService {
     }
 
     /** Xu ly hoan tien: chi ap dung cho don da PAID, hoan lai ton kho va danh dau REFUNDED. */
+    // Cập nhật method processRefund
     public double processRefund(int orderId) throws SQLException {
         Order order = orderDAO.findById(orderId);
         if (order == null) {
-            throw new IllegalArgumentException("Khong tim thay don hang id=" + orderId);
+            throw new IllegalArgumentException("Không tìm thấy đơn hàng id=" + orderId);
         }
         if (!"PAID".equals(order.getStatus())) {
-            throw new IllegalStateException("Chi co the hoan tien cho don hang da thanh toan (PAID). Trang thai hien tai: " + order.getStatus());
+            throw new IllegalStateException("Chỉ có thể hoàn tiền cho đơn hàng đã thanh toán (PAID).");
         }
 
-        try (Connection conn = com.bookstore.util.DBConnection.getConnection()) {
+        try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            try {
-                for (OrderDetail detail : order.getDetails()) {
-                    bookDAO.updateStock(conn, detail.getBookId(), detail.getQuantity());
-                }
-                orderDAO.updateStatus(conn, orderId, "REFUNDED");
+        try {
+            // Hoàn lại tồn kho
+            for (OrderDetail detail : order.getDetails()) {
+                bookDAO.updateStock(conn, detail.getBookId(), detail.getQuantity());
+            }
+
+            // Cập nhật trạng thái đơn hàng
+            orderDAO.updateStatus(conn, orderId, "REFUNDED");
+
+            // Tạo hóa đơn hoàn tiền (nếu cần)
+            // Có thể thêm logic tạo refund record ở đây
+
                 conn.commit();
                 return order.getTotalAmount();
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
-            }
         }
     }
+}
 
     /**
      * Doi tra san pham: tra lai oldQuantity cuon oldBookId, lay newQuantity cuon newBookId,
