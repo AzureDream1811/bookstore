@@ -21,13 +21,21 @@ public class UserDAO {
     }
 
     public int insert(User user) throws SQLException {
-        String sql = "INSERT INTO user (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)";
+        String sql =
+                """
+                        INSERT INTO user
+                        (full_name,email,password_hash,role,verify_code,otp_expires_at,verified)
+                        VALUES(?,?,?,?,?,?,?)
+                        """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getFullName());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
             ps.setString(4, user.getRole());
+            ps.setString(5, user.getVerifyCode());
+            ps.setTimestamp(6, Timestamp.valueOf(user.getOtpExpiresAt()));
+            ps.setBoolean(7, user.isVerified());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);
@@ -58,8 +66,32 @@ public class UserDAO {
     }
 
     private User map(ResultSet rs) throws SQLException {
-        return new User(rs.getInt("user_id"), rs.getString("full_name"), rs.getString("email"),
-                rs.getString("password_hash"), rs.getString("role"));
+        User u = new User();
+
+        u.setUserId(rs.getInt("user_id"));
+        u.setFullName(rs.getString("full_name"));
+        u.setEmail(rs.getString("email"));
+        u.setPasswordHash(rs.getString("password_hash"));
+        u.setRole(rs.getString("role"));
+        u.setVerifyCode(rs.getString("verify_code"));
+        Timestamp otpExpiresAt = rs.getTimestamp("otp_expires_at");
+        if (otpExpiresAt != null) {
+            u.setOtpExpiresAt(otpExpiresAt.toLocalDateTime());
+        }
+        u.setVerified(rs.getBoolean("verified"));
+
+        return u;
+    }
+
+    public void verifyAccount(String email) throws SQLException {
+        String sql =
+                "UPDATE user SET verified = true, verify_code = NULL, otp_expires_at = NULL WHERE email=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.executeUpdate();
+        }
     }
     public void updatePassword(int userId, String newPasswordHash) throws SQLException {
         String sql = "UPDATE user SET password_hash = ? WHERE user_id = ?";

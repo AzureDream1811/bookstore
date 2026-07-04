@@ -1,13 +1,13 @@
 package com.bookstore.controller;
 
 import com.bookstore.chart.ChartType;
-import com.bookstore.model.ReportFilter;
-import com.bookstore.model.RevenueReportData;
-import com.bookstore.model.RevenueResult;
-import com.bookstore.model.Book;
+import com.bookstore.model.*;
 import com.bookstore.service.ChartService;
+import com.bookstore.service.ExportExcelService;
 import com.bookstore.service.ReportService;
 import com.bookstore.view.ConsoleView;
+import com.bookstore.model.BestSellerFilter;
+import com.bookstore.model.BestSellerItem;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -16,17 +16,24 @@ public class ReportController {
     private ReportService reportService;
     private ConsoleView view;
     private ChartService chartService;
+    private ExportExcelService exportService;
 
     public ReportController(ConsoleView view) {
         this.reportService = new ReportService();
         this.view = view;
         this.chartService= new ChartService();
+        this.exportService = new ExportExcelService();
+
     }
 
     // Trigger: Quản lý chọn chức năng "Báo cáo doanh thu"
-    public void handleRevenueReportRequest() {
+    public void handleRevenueReportRequest(User currentUser) {
         boolean isSuccess = false;
         RevenueReportData reportData = null;
+        if (currentUser == null || !"ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            view.displayError("Truy cập bị từ chối: Chỉ Quản trị viên (ADMIN) mới được quyền xem báo cáo doanh thu.");
+            return; // Thoát luồng, đẩy người dùng về lại Menu Thống kê
+        }
         while (!isSuccess) {
             try {
                 // Basic Flow 3 & 4: Lấy điều kiện lọc từ View
@@ -34,7 +41,6 @@ public class ReportController {
                 reportData = reportService.generateRevenueReport(filter);
                 // Basic Flow 5, 6, 7: Gọi Service xử lý
                 RevenueReportData result = reportService.generateRevenueReport(filter);
-
                 // Basic Flow 9 & 10: Hiển thị kết quả
                 view.displayRevenueResult(result);
                 isSuccess = true; // Kết thúc thành công
@@ -49,17 +55,26 @@ public class ReportController {
                 view.displayError(e.getMessage());
                 isSuccess = true; // Thoát vòng lặp để quay lại menu chính
             }
-            handlePostReportActions(reportData);
+            handlePostReportActions(reportData,currentUser);
         }
     }
-    private void handlePostReportActions(RevenueReportData reportData) {
+    private void handlePostReportActions(RevenueReportData reportData,User currentUser) {
         boolean inPostMenu = true;
         while (inPostMenu) {
             int actionChoice = view.showPostReportMenu();
             switch (actionChoice) {
                 case 1 -> {
-                    // Sẽ xử lý chức năng xuất file Excel tại đây theo đặc tả sau
-                    view.displayError("Chức năng xuất báo cáo file Excel đang được phát triển.");
+                    try {
+                        exportService.exportRevenueReport(currentUser, reportData);
+                    } catch (SecurityException e) {
+                        // Exception Flow 3.1: Không đủ quyền
+                        view.displayError(e.getMessage());
+                        // Theo đặc tả, quay về bước 1 (Báo cáo dạng bảng) -> Break case 1
+                    } catch (Exception e) {
+                        // Exception Flow 6.1 & 7.1: Lỗi tạo file / tải file
+                        view.displayError(e.getMessage());
+                        // Console sẽ in lỗi và cho phép nhập lại (thử lại ở vòng lặp while)
+                    }
                 }
                 case 2 -> {
                     // Gọi hàm xử lý quy trình vẽ biểu đồ độc lập
@@ -75,7 +90,6 @@ public class ReportController {
             while (!isChartDone) {
                 int chartChoice = view.showChartTypeMenu();
                 if (chartChoice == 0) return; // Người dùng chọn quay lại
-
                 ChartType selectedType = null;
                 switch (chartChoice) {
                     case 1 -> selectedType = ChartType.BAR;
@@ -86,7 +100,6 @@ public class ReportController {
                         continue;
                     }
                 }
-
                 try {
                     // Đẩy sang Module xử lý kiểm tra nghiệp vụ và vẽ
                     chartService.processAndRenderChart(selectedType, reportData);
@@ -97,6 +110,23 @@ public class ReportController {
                 } catch (Exception e) {
                     // Exception Flow 8.1: Không thể render biểu đồ -> Cho phép chọn/thử lại
                     view.displayError(e.getMessage());
+                }
+            }
+        }
+        
+        public void handleBestSellerReportRequest() {
+            boolean isSuccess = false;
+            while (!isSuccess) {
+                try {
+                    BestSellerFilter filter = view.getBestSellerFilterInput();
+                    List<BestSellerItem> result = reportService.generateBestSellerReport(filter);
+                    view.displayBestSellerResult(result, filter.getType());
+                    isSuccess = true;
+                } catch (IllegalArgumentException e) {
+                    view.displayError(e.getMessage());
+                } catch (Exception e) {
+                    view.displayError(e.getMessage());
+                    isSuccess = true;
                 }
             }
         }

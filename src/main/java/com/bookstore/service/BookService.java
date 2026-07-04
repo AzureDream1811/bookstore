@@ -2,6 +2,7 @@ package com.bookstore.service;
 
 import com.bookstore.dao.BookDAO;
 import com.bookstore.model.Book;
+import com.bookstore.model.Page;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,6 +15,12 @@ public class BookService {
 
     public List<Book> listAll() throws SQLException {
         return bookDAO.findAll();
+    }
+
+    public Page<Book> listPage(int page, int pageSize) throws SQLException {
+        List<Book> books = bookDAO.findPage(page, pageSize);
+        int totalBooks = bookDAO.countAll();
+        return new Page<>(books, page, pageSize, totalBooks);
     }
 
     public List<Book> search(String keyword) throws SQLException {

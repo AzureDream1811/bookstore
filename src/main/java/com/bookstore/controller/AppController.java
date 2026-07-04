@@ -16,7 +16,6 @@ public class AppController {
     private final SalesController salesController;
     private final PaymentController paymentController;
 
-
     private User currentUser = null;
 
     public AppController(ConsoleView view, AuthController authController, ReportController reportController) {
@@ -31,29 +30,86 @@ public class AppController {
         this.cartController = new CartController(view);
         this.rentalController = new RentalController(view);
         this.salesController = new SalesController(view);
-        
         this.paymentController = new PaymentController(view);
     }
 
     public void start() {
         boolean running = true;
         while (running) {
-            String status = currentUser == null
-                    ? "Trang thai: chua dang nhap"
-                    : "Trang thai: " + currentUser.getFullName();
+            if (currentUser == null) {
+                running = handleGuestMenu();
+            } else if ("CUSTOMER".equals(currentUser.getRole())) {
+                running = handleCustomerMenu();
+            } else {
+                // STAFF hoac MANAGER dung chung 1 menu
+                running = handleStaffMenu();
+            }
+        }
+    }
 
-            switch (view.showMainMenu(status)) {
-                case 1 -> currentUser = authController.login();
-                case 2 -> currentUser = authController.register();
-                case 3 -> handleBookMenu();
-                case 4 -> handleInventoryMenu();
-                case 5 -> discountController.open();
-                case 6 -> currentUser = cartController.open(currentUser);
-                case 7 -> currentUser = rentalController.open(currentUser);
-                case 8 -> handleReportMenu();
-                case 9 -> handleUserMenu();
-                case 10 -> currentUser = salesController.open(currentUser);
-                case 0 -> running = false;
+    /**
+     * @return false neu nguoi dung chon "Thoat"
+     */
+    private boolean handleGuestMenu() {
+        switch (view.showGuestMenu()) {
+            case 1 -> currentUser = authController.login();
+            case 2 -> currentUser = authController.register();
+            case 0 -> {
+                return false;
+            }
+            default -> view.printError("Lua chon khong hop le");
+        }
+        return true;
+    }
+
+    //menu cho khach
+    private boolean handleCustomerMenu() {
+        String status = "Trang thai: " + currentUser.getFullName() + " (" + currentUser.getRole() + ")";
+        switch (view.showCustomerMenu(status)) {
+            case 1 -> handleBookMenuCustomer(currentUser);
+            case 2 -> currentUser = cartController.open(currentUser);
+            case 3 -> currentUser = salesController.open(currentUser);
+            case 4 -> currentUser = rentalController.open(currentUser);
+            case 0 -> {
+                this.currentUser = null;
+                view.print("Da dang xuat.");
+            }
+            default -> view.printError("Ban khong co quyen truy cap chuc nang nay");
+        }
+        return true;
+    }
+
+    //menu cho nhan vien
+    private boolean handleStaffMenu() {
+        String status = "Trang thai: "
+                + currentUser.getFullName()
+                + " (" + currentUser.getRole() + ")";
+        switch (view.showStaffMenu(status)) {
+            case 1 -> handleBookMenu(currentUser);
+            case 2 -> handleInventoryMenu();
+            case 3 -> discountController.open();
+            case 4 -> currentUser = cartController.open(currentUser);
+            case 5 -> handleReportMenu();
+            case 6 -> handleUserMenu();
+            case 7 -> currentUser = salesController.open(currentUser);
+            case 8 -> rentalController.openStaff();
+            case 0 -> {
+                currentUser = null;
+                view.print("Da dang xuat.");
+            }
+            default -> view.printError("Lua chon khong hop le");
+        }
+        return true;
+    }
+
+    //menu search cua khach
+    private void handleBookMenuCustomer(User user) {
+        boolean back = false;
+        while (!back) {
+            switch (view.showBookMenuCustomer()) {
+                case 1 -> bookController.listAll();
+                case 2 -> bookController.search(user, cartController);
+                case 0 -> back = true;
                 default -> view.printError("Lua chon khong hop le");
             }
         }
@@ -63,13 +119,12 @@ public class AppController {
     // CÁC HÀM XỬ LÝ MENU CON ( SẼ HOÀN THIỆN LOGIC Ở ĐÂY)
     // =========================================================================
 
-    private void handleBookMenu() {
-        bookController.listAll();
+    private void handleBookMenu(User user) {
         boolean back = false;
         while (!back) {
             switch (view.showBookMenu()) {
                 case 1 -> bookController.listAll();
-                case 2 -> bookController.search();
+                case 2 -> bookController.search(user, cartController);
                 case 3 -> bookController.addBook();
                 case 4 -> bookController.editBook();
                 case 5 -> bookController.hideBook();
@@ -114,14 +169,18 @@ public class AppController {
         while (!back) {
             int choice = view.showReportMenu();
             switch (choice) {
-                case 1 -> reportController.handleRevenueReportRequest();
+                case 1 -> reportController.handleRevenueReportRequest(currentUser);
+                case 2 -> reportController.handleBestSellerReportRequest();
                 case 0 -> back = true;
+                case 3 -> System.out.print("Đang phát triển");
+
                 default -> view.printError("Lựa chọn không hợp lệ");
             }
         }
     }
-
     public void checkout(User customer) {
         paymentController.processPayment(customer);
     }
 }
+
+

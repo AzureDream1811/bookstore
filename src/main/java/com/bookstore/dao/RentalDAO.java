@@ -21,17 +21,25 @@ public class RentalDAO {
     }
 
     public int insert(Rental rental) throws SQLException {
-        String sql = "INSERT INTO rental (user_id, book_id, rent_date, days, status) VALUES (?, ?, ?, ?, ?)";
+
+        String sql = " INSERT INTO rental (user_id, book_id, rent_date, due_date, days, rental_fee, status) VALUES (?, ?, ?, ?, ?, ?, ?) ";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, rental.getUserId());
             ps.setInt(2, rental.getBookId());
             ps.setDate(3, Date.valueOf(rental.getRentDate()));
-            ps.setInt(4, rental.getDays());
-            ps.setString(5, rental.getStatus());
+            ps.setDate(4, Date.valueOf(rental.getDueDate()));
+            ps.setInt(5, rental.getDays());
+            ps.setDouble(6, rental.getRentalFee());
+            ps.setString(7, rental.getStatus());
+
             ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) return keys.getInt(1);
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         }
         return -1;
@@ -66,7 +74,7 @@ public class RentalDAO {
 
     public List<Rental> findOverdue() throws SQLException {
         List<Rental> list = new ArrayList<>();
-        String sql = "SELECT * FROM rental WHERE status = 'RENTED' AND DATE_ADD(rent_date, INTERVAL days DAY) < CURDATE()";
+        String sql = "SELECT * FROM rental WHERE status='RENTED' AND due_date < CURDATE() ";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -87,11 +95,88 @@ public class RentalDAO {
     }
 
     private Rental map(ResultSet rs) throws SQLException {
-        Rental r = new Rental(rs.getInt("rental_id"), rs.getInt("user_id"), rs.getInt("book_id"),
-                rs.getDate("rent_date").toLocalDate(), rs.getInt("days"), rs.getString("status"));
-        Date returnDate = rs.getDate("return_date");
-        if (returnDate != null) r.setReturnDate(returnDate.toLocalDate());
+
+        Rental r = new Rental(
+                rs.getInt("rental_id"),
+                rs.getInt("user_id"),
+                rs.getInt("book_id"),
+                rs.getDate("rent_date").toLocalDate(),
+                rs.getInt("days"),
+                rs.getString("status")
+        );
+
+        Date due = rs.getDate("due_date");
+
+        if (due != null) {
+            r.setDueDate(due.toLocalDate());
+        }
+
+        Date ret = rs.getDate("return_date");
+
+        if (ret != null) {
+            r.setReturnDate(ret.toLocalDate());
+        }
+
+        r.setRentalFee(rs.getDouble("rental_fee"));
         r.setLateFee(rs.getDouble("late_fee"));
+
         return r;
+    }
+    public List<Rental> getAllRentals() throws SQLException {
+
+        List<Rental> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM rental ORDER BY rental_id DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(map(rs));
+            }
+        }
+
+        return list;
+    }
+
+    public List<Rental> searchRental(String keyword) throws SQLException {
+            return search(keyword);
+
+    }
+
+    public boolean updateStatus(int rentalId, String status) throws SQLException {
+
+        String sql =
+                "UPDATE rental SET status=? WHERE rental_id=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, status);
+            ps.setInt(2, rentalId);
+
+            return ps.executeUpdate() > 0;
+        }
+    }
+    public List<Rental> findRentalTickets(int userId) throws SQLException {
+
+        List<Rental> list = new ArrayList<>();
+
+        String sql = " SELECT * FROM rental WHERE user_id = ? AND status = 'RENTED' ORDER BY rental_id DESC ";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(map(rs));
+            }
+        }
+
+        return list;
     }
 }

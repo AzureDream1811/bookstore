@@ -1,11 +1,16 @@
 package com.bookstore.model;
 
+import java.time.LocalDateTime;
+
 public class User {
     private int userId;
     private String fullName;
     private String email;
     private String passwordHash;
     private String role; // CUSTOMER, STAFF, MANAGER
+    private String verifyCode;
+    private LocalDateTime otpExpiresAt;
+    private boolean verified;
 
     public User() {}
 
@@ -27,4 +32,10 @@ public class User {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public String getVerifyCode() {return verifyCode;}
+    public void setVerifyCode(String verifyCode) {this.verifyCode = verifyCode;}
+    public LocalDateTime getOtpExpiresAt() {return otpExpiresAt;}
+    public void setOtpExpiresAt(LocalDateTime otpExpiresAt) {this.otpExpiresAt = otpExpiresAt;}
+    public boolean isVerified() {return verified;}
+    public void setVerified(boolean verified) {this.verified = verified;}
 }

@@ -17,7 +17,9 @@ public class PaymentController {
         this.view = view;
     }
 
-  
+    /**
+     * Thanh toán qua Console (không dùng Swing nữa)
+     */
     public void processPayment(User customer) {
         if (customer == null) {
             view.printError("Cần đăng nhập trước khi thanh toán!");
@@ -93,5 +95,27 @@ public class PaymentController {
         } catch (Exception e) {
             view.printError("Lỗi: " + e.getMessage());
         }
+    }
+    public boolean processLateFee(double amount) {
+
+        view.print("\n=== THANH TOAN PHI PHAT ===");
+        view.print("So tien can thanh toan: " + amount);
+
+        view.print("1. COD");
+        view.print("2. Chuyen khoan");
+        view.print("3. MoMo");
+        view.print("4. VNPay");
+
+        int choice = view.readInt("Chon phuong thuc: ");
+
+        String confirm = view.readLine("Nhap Y de xac nhan: ");
+
+        if (confirm.equalsIgnoreCase("Y")) {
+            view.print("Thanh toan thanh cong.");
+            return true;
+        }
+
+        view.print("Da huy thanh toan.");
+        return false;
     }
 }

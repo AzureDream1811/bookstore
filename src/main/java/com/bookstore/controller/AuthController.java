@@ -3,6 +3,7 @@ package com.bookstore.controller;
 import com.bookstore.model.User;
 import com.bookstore.service.AuthService;
 import com.bookstore.view.ConsoleView;
+import jakarta.mail.MessagingException;
 
 import java.sql.SQLException;
 
@@ -26,15 +27,52 @@ public class AuthController {
     }
 
     public User register() {
-        String fullName = view.readLine("Ho ten: ");
-        String email = view.readLine("Email: ");
+
+        String fullName = view.readLine("Ho ten: ").trim();
+        String email = view.readLine("Email: ").trim();
         String password = view.readLine("Mat khau: ");
-        String role = view.readLine("Vai tro (CUSTOMER/STAFF/MANAGER) [CUSTOMER]: ");
-        if (role.isBlank()) role = "CUSTOMER";
+        String confirmPassword = view.readLine("Nhap lai mat khau: ");
+
+        if (fullName.isEmpty()) {
+            view.printError("Ho ten khong duoc de trong.");
+            return null;
+        }
+
+        if (email.isEmpty()) {
+            view.printError("Email khong duoc de trong.");
+            return null;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            view.printError("Mat khau xac nhan khong dung.");
+            return null;
+        }
+
         try {
-            User user = authService.register(fullName, email, password, role.toUpperCase());
-            view.print("Dang ky thanh cong. userId=" + user.getUserId());
-            return user;
+
+            User user = authService.register(
+                    fullName,
+                    email,
+                    password,
+                    "CUSTOMER"
+            );
+
+            view.print("Dang ky thanh cong!");
+            view.print("Ma OTP da duoc gui den email. Ma co hieu luc trong 5 phut.");
+
+            String otp = view.readLine("Nhap ma OTP: ");
+
+            if (authService.verify(email, otp)) {
+                view.print("Xac thuc tai khoan thanh cong!");
+                return user;
+            } else {
+                view.printError("Sai hoac het han ma OTP.");
+                return null;
+            }
+
+        } catch (MessagingException e) {
+            view.printError("Khong gui duoc email OTP: " + e.getMessage());
+            return null;
         } catch (IllegalArgumentException | SQLException e) {
             view.printError(e.getMessage());
             return null;

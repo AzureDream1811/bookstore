@@ -4,15 +4,15 @@ import java.util.Date;
 
 public class Invoice {
     private Order order;
-    private PaymentMethod paymentMethod;
+    private Payment paymentMethod;
     private Date invoiceDate;
     private double totalAmount;
 
     // Getters & Setters
     public Order getOrder() { return order; }
     public void setOrder(Order order) { this.order = order; }
-    public PaymentMethod getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
+    public Payment getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(Payment paymentMethod) { this.paymentMethod = paymentMethod; }
     public Date getInvoiceDate() { return invoiceDate; }
     public void setInvoiceDate(Date invoiceDate) { this.invoiceDate = invoiceDate; }
     public double getTotalAmount() { return totalAmount; }

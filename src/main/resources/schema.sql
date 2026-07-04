@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS user
     full_name     VARCHAR(100) NOT NULL,
     email         VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role          VARCHAR(20)  NOT NULL DEFAULT 'CUSTOMER'
+    role          VARCHAR(20)  NOT NULL DEFAULT 'CUSTOMER',
+    verify_code   VARCHAR(6),
+    otp_expires_at DATETIME,
+    verified      BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS member
@@ -107,17 +110,18 @@ CREATE TABLE IF NOT EXISTS order_detail
 CREATE TABLE IF NOT EXISTS rental
 (
     rental_id   INT AUTO_INCREMENT PRIMARY KEY,
-    user_id     INT  NOT NULL,
-    book_id     INT  NOT NULL,
+    user_id     INT NOT NULL,
+    book_id     INT NOT NULL,
     rent_date   DATE NOT NULL,
-    days        INT  NOT NULL,
+    due_date    DATE NOT NULL,
+    days        INT NOT NULL,
+    rental_fee  DOUBLE DEFAULT 0,
+    late_fee    DOUBLE DEFAULT 0,
     status      VARCHAR(20) DEFAULT 'RENTED',
     return_date DATE,
-    late_fee    DOUBLE      DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES user (user_id),
     FOREIGN KEY (book_id) REFERENCES book (book_id)
-);
-
+    );
 CREATE TABLE IF NOT EXISTS email_log
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,

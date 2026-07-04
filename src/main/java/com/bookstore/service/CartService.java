@@ -265,4 +265,10 @@ public Order checkout(int userId, List<OrderDetail> cartItems, String voucherCod
         }
         return order;
     }
+    public List<Order> getPendingOrdersForUser(int userId) throws SQLException {
+        List<Order> allUserOrders = orderDAO.findByUserId(userId);
+        return allUserOrders.stream()
+                .filter(o -> "PENDING".equals(o.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

@@ -20,6 +20,50 @@ public class BookDAO {
         return books;
     }
 
+    public List<Book> findPage(int page, int pageSize) throws SQLException {
+        List<Book> books = new ArrayList<>();
+        String sql = "SELECT * FROM book ORDER BY title LIMIT ? OFFSET ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, pageSize);
+            ps.setInt(2, (page - 1) * pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) books.add(map(rs));
+            }
+        }
+        return books;
+    }
+
+    public int countAll() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM book";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public List<Book> findAvailableBooks() throws SQLException {
+
+        List<Book> books = new ArrayList<>();
+
+        String sql = "SELECT * FROM book WHERE status = 'ACTIVE' AND is_faulty = FALSE AND stock_quantity >0 ORDER BY title ";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                books.add(map(rs));
+            }
+        }
+
+        return books;
+    }
+
     public Book findById(int bookId) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
             return findById(conn, bookId);
